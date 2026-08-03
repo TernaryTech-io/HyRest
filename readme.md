@@ -10,6 +10,11 @@
 
 HyRest simplifies working with Hyland's OnBase REST API by providing an intuitive, strongly-typed interface that feels familiar to Unity API developers but with modern fluent api styled interactions and eventul support for dependancy injection. Say goodbye to complex HTTP calls and manual JSON serialization—HyRest handles the heavy lifting so you can focus on building great integrations.
 
+**For working examples, check out the following projects:**
+- [HyRest.Example](https://github.com/TernaryTech-io/HyRest.Example) - Simplified implementaton.
+- [HyRest.OnCmd](https://github.com/TernaryTech-io/HyRest.OnCmd) - A fun terminal client for OnBase.
+- [HyRest.Relay](https://github.com/TernaryTech-io/HyRest.Relay) - A relay web api utilizing the `HyRest.DependencyInjection` library, and more advanced authentication.
+
 ## Why HyRest?
 
 - **🎯 Intuitive API** - Familiar conventions for Unity API developers transitioning to REST
@@ -186,7 +191,7 @@ HyRest offers two application patterns to suit different use cases:
 The scoped app implements `IDisposable` and `IAsyncDisposable`, automatically handling authentication and session cleanup:
 
 ```csharp
-var scoped = new OnBaseScopedApp(logger, creds, options);
+var scoped = OnBaseScopedApp.CreateScopedApp(logger, creds, options);
 var doc = await scoped.Core.GetDocumentByIdAsync(12345);
 // Session automatically disconnects when disposed```
 
