@@ -20,4 +20,6 @@ public class OnBaseScopedApp : OnBaseApp, IDisposable
         if (IsConnected)
             Session.DisconnectAsync().Wait();
     }
+    public static OnBaseScopedApp CreateScopedApp(ILogger<OnBaseScopedApp> logger, IAuthenticationCredentials credentials, HylandClientOptions options)
+        => new OnBaseScopedApp(logger, credentials, options);
 }
