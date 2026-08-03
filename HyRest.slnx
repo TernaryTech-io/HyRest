@@ -1,5 +1,3 @@
 <Solution>
-  <Project Path="../HyRest.Abstractions/HyRest.Abstractions.csproj" />
-  <Project Path="../HyRest.FileTypeMapping/HyRest.FileTypeMapping.csproj" />
   <Project Path="HyRest.csproj" />
 </Solution>

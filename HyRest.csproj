@@ -13,6 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="HyRest.Abstractions" />
+    <PackageReference Include="HyRest.FileTypeMapping" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
@@ -39,11 +41,6 @@
     <None Include=".spec\refitter-commands.txt" />
     <None Include=".spec\workflow-specification.json" />
     <None Include=".spec\workview-specification.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\HyRest.Abstractions\HyRest.Abstractions.csproj" />
-    <ProjectReference Include="..\HyRest.FileTypeMapping\HyRest.FileTypeMapping.csproj" />
   </ItemGroup>
 
 </Project>
