@@ -110,7 +110,9 @@ public sealed class Document : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore,
     public Task AddNewNote(AddNoteProperties addNoteProperties, string revisionId = "latest")
         => Module.Run(Api.PostNoteOnDocument(Item.Id, revisionId, addNoteProperties));
 
-    public async Task UpdateKeywords()
+    public void UpdateKeywords()
+        => UpdateKeywordsAsync().Wait();
+    public async Task UpdateKeywordsAsync()
     {
         await Module.Run(Api.PutKeywordCollectionForDocument(Id.ToString(), KeywordCollection.GetModel()));
         await GetKeywordCollection();
