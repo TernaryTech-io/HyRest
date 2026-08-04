@@ -67,6 +67,7 @@ public sealed class Document : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore,
             return _keywordCollection;
         }
     }
+    [JsonIgnore]
     public IReadOnlyCollection<Revision> Revisions
     {
         get

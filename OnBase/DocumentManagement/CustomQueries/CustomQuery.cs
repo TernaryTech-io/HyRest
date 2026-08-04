@@ -1,5 +1,6 @@
-﻿using System.Runtime.CompilerServices;
-using HyRest.Utilities;
+﻿using HyRest.Utilities;
+using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 
 namespace HyRest.DocumentManagement;
 public sealed class CustomQuery : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore, CustomQueryModel>
@@ -9,13 +10,14 @@ public sealed class CustomQuery : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBa
     public string Instructions => Item.Instructions ?? string.Empty;
     public CustomQueryDateOptions? DateOptions => Item.DateOptions;
     public CustomQueryQueryType QueryType => Item.QueryType;
-    public List<KeywordType> KeywordTypes 
+    [JsonIgnore]
+    public IReadOnlyCollection<KeywordType> KeywordTypes 
     {
         get
         {
             if (_keywordTypes == null || _keywordTypes.Count == 0)
                 PopulateKeywordTypes().Wait();
-            return _keywordTypes;
+            return _keywordTypes ?? [];
         }
     }
     private async Task PopulateKeywordTypes()

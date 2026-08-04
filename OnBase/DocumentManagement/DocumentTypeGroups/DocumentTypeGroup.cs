@@ -1,4 +1,5 @@
 ﻿using HyRest.Utilities;
+using System.Text.Json.Serialization;
 
 namespace HyRest.DocumentManagement;
 
@@ -8,6 +9,7 @@ public sealed class DocumentTypeGroup : OnBaseItemTypeService<IOnBaseDocumentAPI
     public DocumentTypeGroup(OnBaseCore core, DocumentTypeGroupModel item) : base(core, item)
     {
     }
+    [JsonIgnore] 
     public IReadOnlyCollection<DocumentType> DocumentTypes
     {
         get

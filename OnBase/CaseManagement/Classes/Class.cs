@@ -19,6 +19,7 @@ public class Class : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkView, C
     /// The base most Class Id of the current class.
     /// </summary>
     public long RootClassId => Item.RootClassId.ConvertTo<long>();
+    [JsonIgnore]
     public IReadOnlyCollection<Attribute> Attributes
     {
         get

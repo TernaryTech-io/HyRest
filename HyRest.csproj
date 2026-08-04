@@ -1,24 +1,24 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ApplicationIcon>Ternary-teal.ico</ApplicationIcon>
     <PackageIcon>Ternary-teal.png</PackageIcon>
+    <VersionPrefix>10.0.4</VersionPrefix>
   </PropertyGroup>
-
   <ItemGroup>
     <Content Include="Ternary-teal.ico" />
   </ItemGroup>
-
   <ItemGroup>
+    <PackageReference Include="Duende.AccessTokenManagement" />
+    <PackageReference Include="Duende.AccessTokenManagement.OpenIdConnect" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Options" />
   </ItemGroup>
-
   <ItemGroup>
     <Using Include="Ternary.DataConversions" />
     <Using Include="HyRest.API" />
@@ -26,7 +26,6 @@
     <Using Include="HyRest.DocumentManagement" />
     <Using Include="HyRest.Identity" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="..\..\resources\Ternary-teal.png">
       <Pack>True</Pack>
@@ -40,10 +39,8 @@
     <None Include=".spec\workflow-specification.json" />
     <None Include=".spec\workview-specification.json" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\HyRest.Abstractions\HyRest.Abstractions.csproj" />
     <ProjectReference Include="..\HyRest.FileTypeMapping\HyRest.FileTypeMapping.csproj" />
   </ItemGroup>
-
 </Project>

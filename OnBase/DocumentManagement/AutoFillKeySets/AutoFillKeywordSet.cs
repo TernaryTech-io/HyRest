@@ -1,4 +1,5 @@
 ﻿using HyRest.Utilities;
+using System.Text.Json.Serialization;
 
 namespace HyRest.DocumentManagement;
 
@@ -17,13 +18,14 @@ public sealed class AutoFillKeywordSet : OnBaseItemTypeService<IOnBaseDocumentAP
             return _primaryKeywordType;
         }
     }
-    public List<KeywordType> KeywordTypes
+    [JsonIgnore]
+    public IReadOnlyCollection<KeywordType> KeywordTypes
     {
         get
         {
             if (_keywordTypes == null || _keywordTypes.Count == 0)
                 PopulateKeywordTypes().Wait();
-            return _keywordTypes;
+            return _keywordTypes ?? [];
         }
     }
     public bool External => Item.External;

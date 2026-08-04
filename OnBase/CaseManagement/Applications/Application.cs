@@ -1,4 +1,5 @@
-﻿using Ternary.DataConversions.Extensions;
+﻿using System.Text.Json.Serialization;
+using Ternary.DataConversions.Extensions;
 
 namespace HyRest.CaseManagement;
 
@@ -23,6 +24,7 @@ public class Application : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkV
     /// Identifier of the default Filter for this Application.
     /// </summary>
     public long DefaultFilterId => Item.DefaultFilterId.ConvertTo<long>();
+    [JsonIgnore]
     public IReadOnlyCollection<Class> Classes
     {
         get

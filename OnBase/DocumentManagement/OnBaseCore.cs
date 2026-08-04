@@ -1,3 +1,5 @@
+using HyRest.Administration;
+
 namespace HyRest.DocumentManagement;
 
 /// <summary>
@@ -7,6 +9,7 @@ public sealed partial class OnBaseCore : OnBaseModule<IOnBaseDocumentAPI>, IOnBa
 {    
     public AutoFillKeywordSets AutoFillKeywordSets { get; }
     public CustomQueries CustomQueries { get; set; }
+    public CurrencyFormats CurrencyFormats { get; set; }
     public DocumentTypeGroups DocumentTypeGroups { get; }
     public DocumentTypes DocumentTypes { get; }
     public FileTypes FileTypes { get; }
@@ -18,6 +21,7 @@ public sealed partial class OnBaseCore : OnBaseModule<IOnBaseDocumentAPI>, IOnBa
     {       
         AutoFillKeywordSets = new AutoFillKeywordSets(this);
         CustomQueries = new CustomQueries(this);
+        CurrencyFormats = new CurrencyFormats(this);
         DocumentTypeGroups = new DocumentTypeGroups(this);
         DocumentTypes = new DocumentTypes(this);
         FileTypes = new FileTypes(this);
@@ -59,5 +63,6 @@ public sealed partial class OnBaseCore : OnBaseModule<IOnBaseDocumentAPI>, IOnBa
     {        
         return new OnBaseCore(app);
     }
+    
 }
 

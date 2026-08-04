@@ -1,6 +1,7 @@
 ﻿
 
 using HyRest.Utilities;
+using System.Text.Json.Serialization;
 
 namespace HyRest.DocumentManagement;
 
@@ -13,13 +14,14 @@ public class Revision : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, Revisi
         _doc = doc;
     }
     public int RevisionNumber => Item.RevisionNumber;
-    public List<Rendition> Renditions
+    [JsonIgnore]
+    public IReadOnlyCollection<Rendition> Renditions
     {
         get
         {
             if (_renditions == null)
                 PopulateRenditions().Wait();
-            return _renditions;
+            return _renditions ?? [];
         }
     }
     private async Task PopulateRenditions()

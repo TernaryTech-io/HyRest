@@ -10,15 +10,18 @@ namespace HyRest;
 /// Represents the connection to the OnBase related REST API.
 /// </summary>
 public partial class OnBaseApp : OnBaseAppBase
-{    
+{
+    #region private
+    private bool _isInitated { get; set; }
     private IHylandClientOptions _options;
     private ILogger<OnBaseApp> _logger;
     private IHylandClientFactory _clientFactory;
     private HylandAuthClient? _authClient;
     private OnBaseCore _core { get => (OnBaseCore)base.Core; set => base.Core = value; }
-    private OnBaseSession _session {  get => (OnBaseSession)base.Session; set => base.Session = value; }
+    private OnBaseSession _session { get => (OnBaseSession)base.Session; set => base.Session = value; }
     private OnBaseWorkView _workView { get => (OnBaseWorkView)base.WorkView; set => base.WorkView = value; }
     private OnBaseAdministration _administration { get => (OnBaseAdministration)base.Administration; set => base.Administration = value; }
+    #endregion
     /// <summary>
     /// Constructor for initiating a OnBase App with specified credentials.
     /// </summary>
@@ -47,12 +50,13 @@ public partial class OnBaseApp : OnBaseAppBase
         _clientFactory = clientFactory;
         Init();
     }
-    public override bool IsConnected => _session.IsActive;
-    public override IHylandClientFactory ClientFactory => _clientFactory;
-    public override IHylandClientOptions ClientOptions => _options;
+    public override bool IsConnected => _session != null ? _session.IsActive : false;
+    public override HylandClientFactory ClientFactory => (HylandClientFactory)_clientFactory;
+    public override HylandClientOptions ClientOptions => (HylandClientOptions)_options;
     public override OnBaseCore Core => _core;
     public override OnBaseSession Session => _session;
     public override OnBaseWorkView WorkView => _workView;
+    public override IOnBaseAdministration Administration => _administration;
     public override ILogger<IOnBaseApp> Logger => _logger;
     internal protected OnBaseApp Init()
     {        
@@ -62,8 +66,14 @@ public partial class OnBaseApp : OnBaseAppBase
         _administration = OnBaseAdministration.Create(this);
         if (!IsConnected)
             Session.Initiate();
+        _isInitated = true;
         return this;
     }
+    //public async Task<User> GetCurrentUserAsync()
+    //{
+        
+    //}
+
     public static OnBaseApp Create(ILogger<OnBaseApp> logger, IAuthenticationCredentials credentials, HylandClientOptions options)
         => new OnBaseApp(logger, credentials, options);
 }

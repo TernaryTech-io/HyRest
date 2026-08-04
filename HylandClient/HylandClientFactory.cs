@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Duende.AccessTokenManagement.OpenIdConnect;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 
 namespace HyRest;
@@ -8,6 +10,7 @@ public class HylandClientFactory : IHylandClientFactory
     private readonly IServiceProvider _serviceProvider;   
     private readonly IHylandClientOptions _options;
     private readonly IHttpClientFactory _factory;
+    private readonly IHttpContextAccessor _contextAccessor;
     private readonly HylandAuthClient? _authClient;
     private readonly SessionCookieClientHandler _cookieClientHandler;
     /// <summary>
@@ -50,6 +53,7 @@ public class HylandClientFactory : IHylandClientFactory
         _authClient.AuthenticateAsync().Wait();
     }
     public CookieContainer? CookieContainer => _cookieClientHandler.CookieContainer;
+    //public HttpContextAccessor HttpContextAccessor => (HttpContextAccessor)_contextAccessor;
     /// <summary>
     /// Constructor for Depandancy Injection
     /// </summary>
@@ -60,7 +64,17 @@ public class HylandClientFactory : IHylandClientFactory
         _serviceProvider = serviceProvider;
         _factory = _serviceProvider.GetRequiredService<IHttpClientFactory>();
         _cookieClientHandler = _serviceProvider.GetRequiredService<SessionCookieClientHandler>();
+        //_contextAccessor = _serviceProvider.GetRequiredService<IHttpContextAccessor>();
     }
+    //public void GetHttpUser()
+    //{
+    //    var context = HttpContextAccessor.HttpContext;
+    //    var userClaim = context.User;
+    //    //if(userClaim != null)
+    //    //{
+    //    //    var username = userClaim.Claims.FirstOrDefault()
+    //    //}
+    //}
     public TApi CreateClient<TApi>() where TApi : IHylandRestAPI
     {
         var client = _factory.CreateClient(nameof(HylandApiClient));
