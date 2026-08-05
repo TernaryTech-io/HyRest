@@ -10,7 +10,7 @@ public class OnBaseScopedApp : OnBaseApp, IDisposable, IAsyncDisposable
     {        
         
     }
-    public OnBaseScopedApp(ILogger<OnBaseScopedApp> logger, IHylandClientFactory clientFactory, IOptions<HylandOpenIdOptionsBuilder> options)
+    public OnBaseScopedApp(ILogger<OnBaseScopedApp> logger, IHylandClientFactory clientFactory, IOptions<HylandOpenIdClientOptionsBuilder> options)
         :base(logger,clientFactory,options)
     {        
         

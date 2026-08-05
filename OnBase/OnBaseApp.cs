@@ -16,7 +16,7 @@ public partial class OnBaseApp : OnBaseAppBase
     private IHylandClientOptions _options;
     private ILogger<OnBaseApp> _logger;
     private IHylandClientFactory _clientFactory;
-    private HylandAuthClient? _authClient;
+    private User _currentUser { get; set; }
     private OnBaseCore _core { get => (OnBaseCore)base.Core; set => base.Core = value; }
     private OnBaseSession _session { get => (OnBaseSession)base.Session; set => base.Session = value; }
     private OnBaseWorkView _workView { get => (OnBaseWorkView)base.WorkView; set => base.WorkView = value; }
@@ -41,7 +41,7 @@ public partial class OnBaseApp : OnBaseAppBase
     /// <param name="logger"></param>
     /// <param name="clientFactory"></param>
     /// <param name="options"></param>
-    public OnBaseApp(ILogger<OnBaseApp> logger, IHylandClientFactory clientFactory, IOptions<HylandOpenIdOptionsBuilder> options)
+    public OnBaseApp(ILogger<OnBaseApp> logger, IHylandClientFactory clientFactory, IOptions<HylandOpenIdClientOptionsBuilder> options)
     {
         _logger = logger;
         var clientOptions = new HylandClientOptions();
@@ -53,13 +53,14 @@ public partial class OnBaseApp : OnBaseAppBase
     public override bool IsConnected => _session != null ? _session.IsActive : false;
     public override HylandClientFactory ClientFactory => (HylandClientFactory)_clientFactory;
     public override HylandClientOptions ClientOptions => (HylandClientOptions)_options;
+    public User CurrentUser => _currentUser;
     public override OnBaseCore Core => _core;
     public override OnBaseSession Session => _session;
     public override OnBaseWorkView WorkView => _workView;
-    public override IOnBaseAdministration Administration => _administration;
+    public override OnBaseAdministration Administration => _administration;
     public override ILogger<IOnBaseApp> Logger => _logger;
     internal protected OnBaseApp Init()
-    {        
+    {                
         _session = OnBaseSession.Create(this);
         _core = OnBaseCore.Create(this);
         _workView = OnBaseWorkView.Create(this);
@@ -67,12 +68,17 @@ public partial class OnBaseApp : OnBaseAppBase
         if (!IsConnected)
             Session.Initiate();
         _isInitated = true;
+        if (_clientFactory.UserInfo != null)
+        {
+            if (_clientFactory.UserInfo.UserId != null)
+                _currentUser = Administration.Users[_clientFactory.UserInfo.UserId];
+            else if (_clientFactory.UserInfo.UserName != null)
+                _currentUser = Administration.Users.FirstOrDefault(u => u.Name == _clientFactory.UserInfo.UserName.ToUpper());
+            else if(_clientFactory.UserInfo.Email != null)
+                _currentUser = Administration.Users.FirstOrDefault(u => u.EmailAddress == _clientFactory.UserInfo.Email);
+        }
         return this;
     }
-    //public async Task<User> GetCurrentUserAsync()
-    //{
-        
-    //}
 
     public static OnBaseApp Create(ILogger<OnBaseApp> logger, IAuthenticationCredentials credentials, HylandClientOptions options)
         => new OnBaseApp(logger, credentials, options);

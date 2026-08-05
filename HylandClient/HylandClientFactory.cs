@@ -1,4 +1,4 @@
-﻿using Duende.AccessTokenManagement.OpenIdConnect;
+﻿using HyRest.Identity.Credentials;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
@@ -11,7 +11,7 @@ public class HylandClientFactory : IHylandClientFactory
     private readonly IHylandClientOptions _options;
     private readonly IHttpClientFactory _factory;
     private readonly IHttpContextAccessor _contextAccessor;
-    private readonly HylandAuthClient? _authClient;
+    private readonly IHylandAuthClient _authClient;
     private readonly SessionCookieClientHandler _cookieClientHandler;
     /// <summary>
     /// Constructor for basic authentication
@@ -29,11 +29,10 @@ public class HylandClientFactory : IHylandClientFactory
         {
             return options;
         });
-        services.AddHttpClient<HylandAuthClient>(client =>
+        services.AddHttpClient<HylandBasicAuthClient>(client =>
         {
             client.BaseAddress = new Uri(options.IdsBaseUrl);            
-        });
-        
+        });        
         services.AddTransient(sp =>
         {
            return new SessionCookieClientHandler(options);
@@ -48,33 +47,27 @@ public class HylandClientFactory : IHylandClientFactory
         _serviceProvider = services.BuildServiceProvider();
         _factory = _serviceProvider.GetRequiredService<IHttpClientFactory>();
         _cookieClientHandler = _serviceProvider.GetRequiredService<SessionCookieClientHandler>();
-        _authClient = _serviceProvider.GetRequiredService<HylandAuthClient>()
+        _authClient = _serviceProvider.GetRequiredService<HylandBasicAuthClient>()
             .WithCredentials(credentials);
         _authClient.AuthenticateAsync().Wait();
     }
     public CookieContainer? CookieContainer => _cookieClientHandler.CookieContainer;
-    //public HttpContextAccessor HttpContextAccessor => (HttpContextAccessor)_contextAccessor;
+    public UserInfo? UserInfo => _authClient.UserInfo;
     /// <summary>
     /// Constructor for Depandancy Injection
     /// </summary>
     /// <param name="serviceProvider"></param>
-    public HylandClientFactory(IServiceProvider serviceProvider)
+    public HylandClientFactory(IServiceProvider serviceProvider, OpenIdCredentials credentials, IHttpContextAccessor contextAccessor)
     {
         //In this scenario, the Duende Access Token Management should handle Authentication
         _serviceProvider = serviceProvider;
         _factory = _serviceProvider.GetRequiredService<IHttpClientFactory>();
         _cookieClientHandler = _serviceProvider.GetRequiredService<SessionCookieClientHandler>();
-        //_contextAccessor = _serviceProvider.GetRequiredService<IHttpContextAccessor>();
+        _authClient = _serviceProvider.GetRequiredService<HylandOpenIdAuthClient>()
+            .WithCredentials(credentials)
+            .WithContextAccessor(contextAccessor);
+        
     }
-    //public void GetHttpUser()
-    //{
-    //    var context = HttpContextAccessor.HttpContext;
-    //    var userClaim = context.User;
-    //    //if(userClaim != null)
-    //    //{
-    //    //    var username = userClaim.Claims.FirstOrDefault()
-    //    //}
-    //}
     public TApi CreateClient<TApi>() where TApi : IHylandRestAPI
     {
         var client = _factory.CreateClient(nameof(HylandApiClient));

@@ -3,7 +3,7 @@
 public class HylandApiClient : IHylandApiClient
 {
     private readonly HttpClient _httpClient;
-    internal HylandApiClient(HttpClient httpClient)
+    public HylandApiClient(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }

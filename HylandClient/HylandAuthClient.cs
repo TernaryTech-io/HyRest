@@ -1,26 +1,30 @@
-﻿namespace HyRest;
-public class HylandAuthClient : IHylandAuthClient
+﻿using Duende.IdentityModel.Client;
+using HyRest.Identity.Credentials;
+
+namespace HyRest;
+public abstract class HylandAuthClient : IHylandAuthClient
 {
-    private IHylandIdentityServiceAuthenticationAPI _api;
-    private IAuthenticationToken? _token { get; set; }
-    private IAuthenticationCredentials _credentials;
-    private HttpClient _httpClient { get; set; }
-    /// <summary>
-    /// Hyland Http Client for basic authentication
-    /// </summary>
-    /// <param name="httpClient"></param>
+    protected internal IAuthenticationToken? _token { get; set; }
+    protected internal IAuthenticationCredentials _credentials;
+    protected internal HttpClient _httpClient { get; set; }
+    protected internal DiscoveryDocumentResponse? _discoveryDocument { get; set; }
+    protected internal UserInfo? _userInfo { get; set; }
     public HylandAuthClient(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        _api = IHylandRestAPI.Get<IHylandIdentityServiceAuthenticationAPI>(_httpClient);
     }
     public IAuthenticationToken? AuthToken => _token;
     public bool IsAuthenticated => _token is not null && !_token.IsExpired();
     public bool IsExpired => _token == null || _token.IsExpired();
-    public HylandAuthClient WithCredentials(IAuthenticationCredentials credentials)
+    public abstract Task<IAuthenticationToken> AuthenticateAsync();
+    public UserInfo? UserInfo
     {
-        _credentials = credentials;
-        return this;
+        get
+        {
+            if (_userInfo == null)
+                GetUserInfoAsync().Wait();
+            return _userInfo;
+        }
     }
     public async Task<string> GetAccessTokenAsync()
     {
@@ -36,22 +40,12 @@ public class HylandAuthClient : IHylandAuthClient
         return _token?.AccessToken
             ?? throw new Exception("Failed to retrieve access token. User is not authenticated.");
     }
-    /// <summary>
-    /// Authenticate to the Hyland
-    /// </summary>
-    /// <param name="credentials"></param>
-    /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
-    public async Task<IAuthenticationToken> AuthenticateAsync()
+    protected internal async Task GetDiscoveryDocumentAsync()
+        => _discoveryDocument = await _httpClient.GetDiscoveryDocumentAsync();
+    public abstract Task GetUserInfoAsync();
+    public virtual IHylandAuthClient WithCredentials(IAuthenticationCredentials credentials)
     {
-        var response = await _api.GetAuthToken(_credentials.ToBody());
-        if (!response.IsSuccessStatusCode)
-            throw new InvalidOperationException($"Authentication failed: {response.StatusCode}");
-        _token = response.Content;
-        return _token;
+        _credentials = credentials;
+        return this;
     }
-    public static HylandAuthClient Create(HttpClient httpClient, IAuthenticationCredentials credentials)
-        => new HylandAuthClient(httpClient).WithCredentials(credentials);
 }
-
-

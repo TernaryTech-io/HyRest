@@ -9,7 +9,7 @@ namespace HyRest;
 public sealed class SessionCookieClientHandler : HttpClientHandler
 {
     private IHylandClientOptions _options { get; set; } = new HylandClientOptions();
-    public SessionCookieClientHandler(IOptions<HylandOpenIdOptionsBuilder> options) : base()
+    public SessionCookieClientHandler(IOptions<HylandOpenIdClientOptionsBuilder> options) : base()
     {
         this.UseCookies = true;
         this.AllowAutoRedirect = true;
