@@ -1,4 +1,6 @@
-﻿namespace HyRest.Administration;
+﻿using System.Text;
+
+namespace HyRest.Administration;
 
 public class Users : OnBaseItemCollectionService<IOnBaseAdministrationAPI,OnBaseAdministration, User>
 {
@@ -22,22 +24,43 @@ public class Users : OnBaseItemCollectionService<IOnBaseAdministrationAPI,OnBase
 
 public class User : OnBaseItemService<IOnBaseAdministrationAPI, OnBaseAdministration, UserModel>
 {
-    internal User(OnBaseAdministration module, UserModel user) : base (module, PopulateDetails(module,user))
+    private bool _hydrated;
+    internal User(OnBaseAdministration module, UserModel user) : base (module, user)
     {
 
     }
-    public string? Name => Item.Name;
-    public string? RealName => Item.RealName;
-    public string? EmailAddress => Item.EmailAddress;
+    public string? Name
+    {
+        get
+        {
+            if (Item.Name == null)
+                PopulateDetails().Wait();
+            return Item.Name;
+        }
+    }
+    public string? RealName
+    {
+        get
+        {
+            if (Item.RealName == null)
+                PopulateDetails().Wait();
+            return Item.RealName;
+        }
+    }
+    public string? EmailAddress
+    {
+        get
+        {
+            if (Item.EmailAddress == null)
+                PopulateDetails().Wait();
+            return Item.EmailAddress;
+        }
+    }
     public bool Active => Item.Deactivated ? true : false;
 
-    internal static UserModel PopulateDetails(OnBaseAdministration module, UserModel user)
+    internal async Task PopulateDetails()
     {
-        var task = module.Run(module.Api<IOnBaseAdministrationAPI>().UsersGet2(user.Id, null));
-        task.Wait();
-        if (task.IsCompletedSuccessfully)
-            return task.Result;
-        else
-            return user;
+        var userModel = await Module.Run(Module.Api<IOnBaseAdministrationAPI>().UsersGet2(Item.Id, null));
+        base.ReplaceModel(userModel);
     }
 }
