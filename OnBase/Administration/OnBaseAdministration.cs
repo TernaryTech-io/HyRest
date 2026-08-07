@@ -2,7 +2,7 @@
 
 namespace HyRest.Administration;
 
-public class OnBaseAdministration : OnBaseModule<IOnBaseAdministrationAPI>, IOnBaseAdministration
+public class OnBaseAdministration : OnBaseModule, IOnBaseAdministration
 {
     internal OnBaseAdministration(IOnBaseApp app) : base(app)
     {

@@ -2,7 +2,7 @@
 
 namespace HyRest.DocumentManagement;
 
-public class DocumentQuery : OnBaseRestService<IOnBaseDocumentAPI>
+public class DocumentQuery : OnBaseRestService
 {
     private OnBaseCore _core => (OnBaseCore)Module;
     private readonly string _queryId;

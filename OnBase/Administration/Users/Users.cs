@@ -1,28 +1,41 @@
-﻿using System.Text;
+﻿using HyRest.Cache;
+using System.Text;
 
 namespace HyRest.Administration;
 
-public class Users : OnBaseItemCollectionService<IOnBaseAdministrationAPI,OnBaseAdministration, User>
+public class Users : OnBaseItemCollectionService<OnBaseAdministration, User>
 {
-    internal Users(OnBaseAdministration module) : base(module)
+    internal Users(OnBaseAdministration module, OnBaseAppCache<User> cache) : base(module, cache)
     {
 
     }
 
-    protected override async Task GetCollection()
+    protected override async Task GetCollection(CancellationToken token = default)
     {
-        var col = await Module.Run(Api.UsersGet());
+        var col = await Module.Run<IOnBaseAdministrationAPI, UserCollectionModel>((api,ct) => api.UsersGet());
         if (col != null)
         {
             col.Items
                 .Select(i => new User(Module, i))
                 .ToList()
-                .ForEach(i => _items.Add(i));
+                .ForEach(i =>
+                {
+                    _items.Add(i);
+                });
+        }
+    }
+    protected override async Task<User?> GetOne(string identifier, CancellationToken token = default)
+    {
+        if (long.TryParse(identifier, out long id))
+        {
+            var model = await Module.Run<IOnBaseAdministrationAPI, UserModel>((api, ct) => api.UsersGet2(identifier));
+            if (model != null)
+                return new User(Module, model);
         }
     }
 }
 
-public class User : OnBaseItemService<IOnBaseAdministrationAPI, OnBaseAdministration, UserModel>
+public class User : OnBaseItemService<OnBaseAdministration, UserModel>
 {
     private bool _hydrated;
     internal User(OnBaseAdministration module, UserModel user) : base (module, user)

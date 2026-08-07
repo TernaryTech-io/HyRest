@@ -1,6 +1,6 @@
 ﻿namespace HyRest.CaseManagement;
 
-public class Classes : OnBaseItemTypeCollectionService<IOnBaseWorkViewAPI, OnBaseWorkView, Class>
+public class Classes : OnBaseItemTypeCollectionService<OnBaseWorkView, Class>
 {
     public Classes(OnBaseWorkView module) : base(module)
     {
@@ -12,4 +12,5 @@ public class Classes : OnBaseItemTypeCollectionService<IOnBaseWorkViewAPI, OnBas
         {
             _items.AddRange(a.Classes);
         }));
+    
 }

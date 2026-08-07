@@ -3,6 +3,7 @@ using HyRest.Utilities;
 
 namespace HyRest.DocumentManagement;
 
+
 public class DocumentResult
 {
     private readonly OnBaseCore _core;

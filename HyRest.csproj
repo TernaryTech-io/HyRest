@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ApplicationIcon>Ternary-teal.ico</ApplicationIcon>
     <PackageIcon>Ternary-teal.png</PackageIcon>
-    <VersionPrefix>10.0.7</VersionPrefix>
+    <VersionPrefix>10.0.6</VersionPrefix>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Ternary-teal.ico" />
@@ -14,6 +14,9 @@
     <PackageReference Include="Duende.AccessTokenManagement" />
     <PackageReference Include="Duende.AccessTokenManagement.OpenIdConnect" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
