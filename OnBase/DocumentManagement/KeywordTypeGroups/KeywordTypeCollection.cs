@@ -2,7 +2,7 @@
 
 namespace HyRest.DocumentManagement;
 
-public sealed class KeywordTypeCollection : OnBaseRestService<IOnBaseDocumentAPI>
+public sealed class KeywordTypeCollection : OnBaseRestService
 {
     private readonly KeywordTypeGroupCollectionModel _model;
     private KeywordOptions _keywordOptions { get; set; }

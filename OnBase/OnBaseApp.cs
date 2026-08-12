@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+﻿using HyRest.Administration;
+using HyRest.Cache;
 using HyRest.CaseManagement;
 using HyRest.Session;
-using HyRest.Administration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace HyRest;
 
@@ -16,6 +17,7 @@ public partial class OnBaseApp : OnBaseAppBase
     private IHylandClientOptions _options;
     private ILogger<OnBaseApp> _logger;
     private IHylandClientFactory _clientFactory;
+    private IOnBaseAppCache _cache;
     private User _currentUser { get; set; }
     private OnBaseCore _core { get => (OnBaseCore)base.Core; set => base.Core = value; }
     private OnBaseSession _session { get => (OnBaseSession)base.Session; set => base.Session = value; }
@@ -28,28 +30,31 @@ public partial class OnBaseApp : OnBaseAppBase
     /// <param name="logger"></param>
     /// <param name="credentials"></param>
     /// <param name="options"></param>
-    public OnBaseApp(ILogger<OnBaseApp> logger, IAuthenticationCredentials credentials, HylandClientOptions options)
+    public OnBaseApp(ILogger<OnBaseApp> logger, IHylandClientFactory clientFactory, HylandClientOptions options, OnBaseAppCache cache)
     {
-        _clientFactory = new HylandClientFactory(options, credentials);
-        _logger = logger;
+        _clientFactory = clientFactory;
         _options = options;
+        _logger = logger;
+        _cache = cache;
         Init();
     }
     /// <summary>
-    /// Constructor for initiating an OnBase App through dependanct injection.
+    /// Constructor for initiating an OnBase App through dependency injection.
     /// </summary>
     /// <param name="logger"></param>
     /// <param name="clientFactory"></param>
     /// <param name="options"></param>
-    public OnBaseApp(ILogger<OnBaseApp> logger, IHylandClientFactory clientFactory, IOptions<HylandOpenIdClientOptionsBuilder> options)
+    public OnBaseApp(ILogger<OnBaseApp> logger, IHylandClientFactory clientFactory, IOptions<HylandOpenIdClientOptionsBuilder> options, OnBaseAppCache cache)
     {
         _logger = logger;
         var clientOptions = new HylandClientOptions();
         options.Value.OptionsAction(clientOptions);
         _options = clientOptions;
         _clientFactory = clientFactory;
+        _cache = cache;
         Init();
     }
+    public override OnBaseAppCache Cache => (OnBaseAppCache)_cache;
     public override bool IsConnected => _session != null ? _session.IsActive : false;
     public override HylandClientFactory ClientFactory => (HylandClientFactory)_clientFactory;
     public override HylandClientOptions ClientOptions => (HylandClientOptions)_options;
@@ -68,18 +73,15 @@ public partial class OnBaseApp : OnBaseAppBase
         if (!IsConnected)
             Session.Initiate();
         _isInitated = true;
-        if (_clientFactory.UserInfo != null)
+        if (_clientFactory.AuthClient.UserInfo != null)
         {
-            if (_clientFactory.UserInfo.UserId != null)
-                _currentUser = Administration.Users[_clientFactory.UserInfo.UserId];
-            else if (_clientFactory.UserInfo.UserName != null)
-                _currentUser = Administration.Users.FirstOrDefault(u => u.Name == _clientFactory.UserInfo.UserName.ToUpper());
-            else if(_clientFactory.UserInfo.Email != null)
-                _currentUser = Administration.Users.FirstOrDefault(u => u.EmailAddress == _clientFactory.UserInfo.Email);
+            if (_clientFactory.AuthClient.UserInfo.UserId != null)
+                _currentUser = Administration.Users[_clientFactory.AuthClient.UserInfo.UserId];
+            else if (_clientFactory.AuthClient.UserInfo.UserName != null)
+                _currentUser = Administration.Users.FirstOrDefault(u => u.Name == _clientFactory.AuthClient.UserInfo.UserName.ToUpper());
+            else if(_clientFactory.AuthClient.UserInfo.Email != null)
+                _currentUser = Administration.Users.FirstOrDefault(u => u.EmailAddress == _clientFactory.AuthClient.UserInfo.Email);
         }
         return this;
     }
-
-    public static OnBaseApp Create(ILogger<OnBaseApp> logger, IAuthenticationCredentials credentials, HylandClientOptions options)
-        => new OnBaseApp(logger, credentials, options);
 }

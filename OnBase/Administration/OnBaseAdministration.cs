@@ -1,8 +1,9 @@
-﻿using Refit;
+﻿using HyRest.Cache;
+using Refit;
 
 namespace HyRest.Administration;
 
-public class OnBaseAdministration : OnBaseModule, IOnBaseAdministration
+public class OnBaseAdministration : OnBaseModule<IOnBaseAdministrationAPI>, IOnBaseAdministration
 {
     internal OnBaseAdministration(IOnBaseApp app) : base(app)
     {

@@ -3,7 +3,7 @@ using HyRest.Utilities;
 
 namespace HyRest.DocumentManagement;
 
-public sealed class KeywordCollection : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, KeywordCollectionModel>
+public sealed class KeywordCollection : OnBaseItemService<OnBaseCore, KeywordCollectionModel>
 {
     [JsonIgnore]
     public override long Id => base.Id;

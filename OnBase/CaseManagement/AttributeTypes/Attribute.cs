@@ -3,7 +3,7 @@ using Ternary.DataConversions.Providers;
 
 namespace HyRest.CaseManagement;
 
-public class Attribute : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkView, AttributeModel>
+public class Attribute : OnBaseItemTypeService<OnBaseWorkView, AttributeModel>
 {
     internal IDataTypeConversionProvider handler => DataType.GetProvider(this);
     internal CultureInfo Culture => new CultureInfo(Module.App.ClientOptions.DefaultLanguage);

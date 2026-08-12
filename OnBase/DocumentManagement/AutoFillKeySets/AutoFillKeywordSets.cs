@@ -1,12 +1,12 @@
 ﻿using HyRest.Utilities;
 
 namespace HyRest.DocumentManagement;
-public sealed class AutoFillKeywordSets : OnBaseItemTypeCollectionService<IOnBaseDocumentAPI, OnBaseCore, AutoFillKeywordSet>
+public sealed class AutoFillKeywordSets : OnBaseItemTypeCollectionService<OnBaseCore, AutoFillKeywordSet>
 {
     internal AutoFillKeywordSets(OnBaseCore core) : base(core){}
-    protected override async Task GetCollection()
+    protected override async Task GetCollection(CancellationToken token = default)
     {
-        var col = await Module.Run(Api.GetAutofillKeywordSetCollection(null, null, Options.DefaultLanguage));
+        var col = await Module.Run(Module.Api.GetAutofillKeywordSetCollection(null, null, Options.DefaultLanguage), token);
         if (col != null)
         {
             col.Items

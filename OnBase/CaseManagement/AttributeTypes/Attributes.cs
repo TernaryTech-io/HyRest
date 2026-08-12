@@ -3,19 +3,21 @@ using Ternary.DataConversions.Providers;
 
 namespace HyRest.CaseManagement;
 
-public class Attributes : OnBaseItemTypeCollectionService<IOnBaseWorkViewAPI, OnBaseWorkView, Attribute>
+public class Attributes : OnBaseItemTypeCollectionService<OnBaseWorkView, Attribute>
 {    
     public Attributes(OnBaseWorkView module) : base(module)
     {
         
     }
 
-    protected override async Task GetCollection()
+    protected override async Task GetCollection(CancellationToken token = default)
     {
-        foreach(var cls in Module.Classes.ToList())
-        {
-            var attributes = await Module.Run(Api.Attributes(cls.Id.ToString(), Module.App.ClientOptions.DefaultLanguage));
-            _items.AddRange(attributes.Items.Select(a => new Attribute(Module, a)));
-        }
-    }
+        Module.Classes.ToList()
+            .ForEach(async c =>
+            {
+                var attributes = await Module.Run(Module.Api.Attributes(c.Id.ToString(), Module.App.ClientOptions.DefaultLanguage));
+                _items.AddRange(attributes.Items.Select(a => new Attribute(Module, a)));
+            });
+        base.GetCollection(token);
+    }    
 }

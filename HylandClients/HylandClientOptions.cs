@@ -18,13 +18,18 @@ public class HylandClientOptions : IHylandClientOptions
     /// Set the deafualt language to be used, en-US is default
     /// </summary>
     public string DefaultLanguage { get; set; } = "en-US";
+    /// <summary>
+    /// Sets the API server timeout in seconds.
+    /// </summary>
+    public int RequestTimeOut { get; set; } = 120;
     public static HylandClientOptions Create(string idsBaseUrl, string apiBaseUrl,
-        bool useQueryMetering = false, string defaultLanguage = "en-US") => new HylandClientOptions
+        bool useQueryMetering = false, string defaultLanguage = "en-US", int requestTimeOut = 120) => new HylandClientOptions
         {
             IdsBaseUrl = idsBaseUrl,
             ApiBaseUrl = apiBaseUrl,
             UseQueryMetering = useQueryMetering,
-            DefaultLanguage = defaultLanguage,            
+            DefaultLanguage = defaultLanguage,    
+            RequestTimeOut = requestTimeOut
         };
 }
 

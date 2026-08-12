@@ -1,6 +1,5 @@
-﻿using System.Text.Json.Serialization;
-using Ternary.DataConversions.Extensions;
-using HyRest.Utilities;
+﻿using HyRest.Utilities;
+using System.Text.Json.Serialization;
 
 namespace HyRest.DocumentManagement;
 
@@ -8,7 +7,7 @@ public class StandAloneKeywordTypes : KeywordTypeGroup
 {
     internal StandAloneKeywordTypes(OnBaseCore core, List<KeywordType> keywordTypes) : base(core, keywordTypes)
     {
-
+        
     }    
     public override string? ToJson()
         => JsonUtility.Serialize(this);
@@ -32,7 +31,7 @@ public class SingleInstanceKeywordTypeGroup : KeywordTypeGroup
         => JsonUtility.Serialize(this);
 }
 
-public abstract class KeywordTypeGroup: OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore, KeywordTypeGroupModel>, IKeywordTypeGroup
+public abstract class KeywordTypeGroup: OnBaseItemTypeService<OnBaseCore, KeywordTypeGroupModel>, IKeywordTypeGroup
 {
     private List<KeywordType> _keywordTypes { get; set; } = [];
     private KeywordTypeGroupType _groupType { get; set; }
@@ -49,9 +48,6 @@ public abstract class KeywordTypeGroup: OnBaseItemTypeService<IOnBaseDocumentAPI
             _keywordTypes = keywordTypes;
         _groupType = KeywordTypeGroupType.StandAlone;
     }
-    public long Id => Item != null ? Item.Id.ConvertTo<long>() : -1;
-    public string? Name => Item != null ? Item.Name : null;
-    public string? SystemName => Item != null ? Item.SystemName : null;
     [HyRestConverter<JsonStringEnumConverter>]
     public KeywordTypeGroupType StorageType => _groupType;  
     public KeywordType? this[long id] => _keywordTypes.FirstOrDefault(i => i.Id == id);
@@ -63,7 +59,7 @@ public abstract class KeywordTypeGroup: OnBaseItemTypeService<IOnBaseDocumentAPI
         get
         {
             if (StorageType != KeywordTypeGroupType.StandAlone)
-                PopulateKeywordTypes().Wait();
+                PopulateKeywordTypes().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _keywordTypes;
         }
     }
@@ -71,7 +67,7 @@ public abstract class KeywordTypeGroup: OnBaseItemTypeService<IOnBaseDocumentAPI
 
     private async Task PopulateKeywordTypes()
     {
-        var col = await Module.Run(Api.GetKeywordTypeCollectionForKeywordTypeGroup(Item.Id));
+        var col = await Module.Run(Module.Api.GetKeywordTypeCollectionForKeywordTypeGroup(Item.Id));
         if (col != null)
             col.Items
             .Select(i => Module.KeywordTypes.Find(i.Id))

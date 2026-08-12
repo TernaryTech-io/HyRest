@@ -9,7 +9,8 @@ public sealed class HylandClientFactory : IHylandClientFactory
 {
     private IServiceProvider _serviceProvider;   
     private IHttpClientFactory _factory;
-    private IHylandAuthClient _authClient;
+    private readonly IHylandAuthClient _authClient;
+    private readonly IHylandApiClient _apiClient;
     private SessionCookieClientHandler _cookieClientHandler;
     internal HylandClientFactory(IServiceProvider serviceProvider, IAuthenticationCredentials credentials)
     {
@@ -18,9 +19,11 @@ public sealed class HylandClientFactory : IHylandClientFactory
         _cookieClientHandler = _serviceProvider.GetRequiredService<SessionCookieClientHandler>();
         _authClient = _serviceProvider.GetRequiredService<HylandBasicAuthClient>()
             .WithCredentials(credentials);
-        _authClient.AuthenticateAsync().Wait();
+        _authClient.AuthenticateAsync().Wait(TimeSpan.FromSeconds(180));
+        _apiClient = _serviceProvider.GetRequiredService<HylandApiClient>()
+            .WithCookieContainer(_cookieClientHandler.CookieContainer);
     }
-    public static IServiceCollection RegisterServices(IServiceCollection services, IHylandClientOptions options, IAuthenticationCredentials credentials)
+    internal static IServiceCollection RegisterServices(IServiceCollection services, IHylandClientOptions options, IAuthenticationCredentials credentials)
     {        
         services.AddSingleton(credentials);
         services.AddTransient(sp =>
@@ -43,10 +46,10 @@ public sealed class HylandClientFactory : IHylandClientFactory
         .ConfigurePrimaryHttpMessageHandler(sp => sp.GetRequiredService<SessionCookieClientHandler>())
         .AddHttpMessageHandler<BearerTokenHandler>();
         return services;
-    }
-    
-    public CookieContainer? CookieContainer => _cookieClientHandler.CookieContainer;
-    public UserInfo? UserInfo => _authClient.UserInfo;
+    }    
+
+    public IHylandApiClient ApiClient => _apiClient;
+    public IHylandAuthClient AuthClient => _authClient;
     /// <summary>
     /// Constructor for Depandancy Injection
     /// </summary>
@@ -60,6 +63,8 @@ public sealed class HylandClientFactory : IHylandClientFactory
         _authClient = _serviceProvider.GetRequiredService<HylandOpenIdAuthClient>()
             .WithCredentials(credentials)
             .WithContextAccessor(contextAccessor);
+        _apiClient = _serviceProvider.GetRequiredService<HylandApiClient>()
+            .WithCookieContainer(_cookieClientHandler.CookieContainer);
         
     }
     public TApi CreateClient<TApi>() where TApi : IHylandRestAPI

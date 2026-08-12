@@ -29,7 +29,7 @@ public class DocumentQuery : OnBaseRestService
     /// <returns></returns>
     public async Task<IReadOnlyCollection<DocumentResult>> GetResultsAsync()
     {
-        var resp = await Module.Run(Api.GetResultCollectionForDocumentQuery(_queryId));
+        var resp = await _core.Run(_core.Api.GetResultCollectionForDocumentQuery(_queryId));
         if(resp != null)
         {
             _results = resp.Items.Select(r => new DocumentResult(_core, r)).ToList();
@@ -38,7 +38,7 @@ public class DocumentQuery : OnBaseRestService
     }
     public IReadOnlyCollection<DocumentResult> GetResults()
     {
-        GetResultsAsync().Wait();
+        GetResultsAsync().Wait(Module.App.ClientOptions.RequestTimeOut);
         return Results;
     }
     public override string? ToJson()

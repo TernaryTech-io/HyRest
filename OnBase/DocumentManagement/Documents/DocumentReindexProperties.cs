@@ -1,10 +1,11 @@
-﻿using System.Text.Json.Serialization;
+﻿using HyRest.Utilities;
+using System.Reflection;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using HyRest.Utilities;
 
 namespace HyRest.DocumentManagement;
 
-public sealed class DocumentReindexProperties : OnBaseRestService<IOnBaseDocumentAPI>
+public sealed class DocumentReindexProperties : OnBaseRestService
 {
     private OnBaseCore _core => (OnBaseCore)Module;
     private readonly Document _doc;
@@ -22,13 +23,13 @@ public sealed class DocumentReindexProperties : OnBaseRestService<IOnBaseDocumen
     /// <summary>
     /// The document type to be reindexed into.
     /// </summary>
-    public DocumentType TargetDocumentType { get => _docType; set => SetDocumentType(value).Wait(); }
-    private async Task SetDocumentType(DocumentType value)
+    public DocumentType TargetDocumentType { get => _docType; set => SetDocumentTypeAsync(value).Wait(Module.App.ClientOptions.RequestTimeOut); }
+    private async Task SetDocumentTypeAsync(DocumentType value)
     {
         _docType = value;
         _model.TargetDocumentTypeId = value.Id.ToString();
         var keywordGuid = _model.KeywordCollection.KeywordGuid;
-        var newColl = await value.GetDefaultKeywords();
+        var newColl = await value.GetDefaultKeywordsAsync();
         var newModel = newColl.GetModel();
         newModel.KeywordGuid = keywordGuid;
         _model.KeywordCollection = newModel;

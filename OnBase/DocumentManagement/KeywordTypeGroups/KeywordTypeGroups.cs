@@ -4,15 +4,15 @@ using HyRest.Utilities;
 
 namespace HyRest.DocumentManagement;
 
-public class KeywordTypeGroups : OnBaseItemTypeCollectionService<IOnBaseDocumentAPI, OnBaseCore, KeywordTypeGroup>
+public class KeywordTypeGroups : OnBaseItemTypeCollectionService< OnBaseCore, KeywordTypeGroup>
 {    
     internal KeywordTypeGroups(OnBaseCore core) : base(core)
     {
         
     }
-    protected override async Task GetCollection()
+    protected override async Task GetCollection(CancellationToken token = default)
     {
-        var col = await Module.Run(Api.GetKeywordTypeGroupCollection(null, null, Options.DefaultLanguage));
+        var col = await Module.Run(Module.Api.GetKeywordTypeGroupCollection(null, null, Options.DefaultLanguage), token);
         if (col != null)
         {
             col.Items
@@ -25,6 +25,7 @@ public class KeywordTypeGroups : OnBaseItemTypeCollectionService<IOnBaseDocument
                         Add(new SingleInstanceKeywordTypeGroup(Module, i));
                 });
         }
+        base.GetCollection(token);
     }
     public override string? ToJson()
         => JsonUtility.Serialize(this);

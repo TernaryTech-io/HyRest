@@ -3,7 +3,7 @@ using Ternary.DataConversions.Extensions;
 
 namespace HyRest.CaseManagement;
 
-public class Application : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkView, ApplicationModel>
+public class Application : OnBaseItemTypeService<OnBaseWorkView, ApplicationModel>
 {
     private List<Class> _classes { get; set; } = [];
     internal Application(OnBaseWorkView module, ApplicationModel item) : base(module, item)
@@ -30,13 +30,13 @@ public class Application : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkV
         get
         {
             if (_classes.Count == 0)
-                PopulateClasses().Wait();
+                PopulateClasses().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _classes;
         }
     }
     private async Task PopulateClasses()
     {
-        var classes = await Module.Run(Api.ClassesGet(Id.ToString(), Module.App.ClientOptions.DefaultLanguage));
-        _classes.AddRange(classes.Items.Select(i => new Class(Module, i)));
+        var classes = await Module.Run(Module.Api.ClassesGet(Id.ToString(), Module.App.ClientOptions.DefaultLanguage));
+        _classes.AddRange(classes.Items.Select(i =>  new Class(Module, i)));
     }
 }

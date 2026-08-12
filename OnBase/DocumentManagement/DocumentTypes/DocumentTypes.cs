@@ -1,15 +1,15 @@
 ﻿using HyRest.Utilities;
 
 namespace HyRest.DocumentManagement;
-public sealed class DocumentTypes : OnBaseItemTypeCollectionService<IOnBaseDocumentAPI, OnBaseCore, DocumentType>
+public sealed class DocumentTypes : OnBaseItemTypeCollectionService<OnBaseCore, DocumentType>
 {
     internal DocumentTypes(OnBaseCore core) : base(core)
     {
         
     }
-    protected override async Task GetCollection()
+    protected override async Task GetCollection(CancellationToken token = default)
     {
-        var col = await Module.Run(Api.GetDocumentTypeCollection(null, null, Options.DefaultLanguage));
+        var col = await Module.Run(Module.Api.GetDocumentTypeCollection(null, null, Options.DefaultLanguage), token);
         if (col != null)
         {
             col.Items
@@ -17,6 +17,7 @@ public sealed class DocumentTypes : OnBaseItemTypeCollectionService<IOnBaseDocum
                 .ToList()
                 .ForEach(i => _items.Add(i));
         }
+        base.GetCollection(token);
     }   
     public override string? ToJson()
         => JsonUtility.Serialize(this);

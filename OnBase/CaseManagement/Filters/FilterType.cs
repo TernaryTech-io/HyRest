@@ -1,6 +1,6 @@
 ﻿namespace HyRest.CaseManagement;
 
-public class FilterType : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkView, FilterTypeModel>
+public class FilterType : OnBaseItemTypeService<OnBaseWorkView, FilterTypeModel>
 {
     private bool _hydrated { get; set; } = false;
     private Class? _class { get; set; }
@@ -19,7 +19,7 @@ public class FilterType : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkVi
             if (_class == null)
             {
                 if (!_hydrated)
-                    GetFilterDetails().Wait();
+                    GetFilterDetails().Wait(Module.App.ClientOptions.RequestTimeOut);
                 _class = Module.Classes.Find(Item.ClassId);
             }
             return _class;
@@ -30,7 +30,7 @@ public class FilterType : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkVi
         get
         {
             if (!_hydrated)
-                GetFilterDetails().Wait();
+                GetFilterDetails().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _columns;
         }
     }
@@ -39,7 +39,7 @@ public class FilterType : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkVi
         get
         {
             if (!_hydrated)
-                GetFilterDetails().Wait();
+                GetFilterDetails().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _entryConstraints;
         }
     }
@@ -48,7 +48,7 @@ public class FilterType : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkVi
         get
         {
             if (!_hydrated)
-                GetFilterDetails().Wait();
+                GetFilterDetails().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _fixedConstraints;
         }
     }
@@ -57,13 +57,13 @@ public class FilterType : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkVi
         get
         {
             if (!_hydrated)
-                GetFilterDetails().Wait();
+                GetFilterDetails().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _sortAttributes;
         }
     }
     private async Task GetFilterDetails()
     {
-        var details = await Module.Run(Api.FiltersGet2(Item.Id, Module.App.ClientOptions.DefaultLanguage));
+        var details = await Module.Run(Module.Api.FiltersGet2(Item.Id, Module.App.ClientOptions.DefaultLanguage));
         if (details != null)
         {
             Item.ColumnAttributes = details.ColumnAttributes;
@@ -72,6 +72,7 @@ public class FilterType : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkVi
             Item.SortAttributes = details.SortAttributes;
             Item.ClassId = details.ClassId;
         }
+        _hydrated = true;
     }
 }
 

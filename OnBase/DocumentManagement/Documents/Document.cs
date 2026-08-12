@@ -2,9 +2,10 @@ using System.Text.Json.Serialization;
 using Ternary.DataConversions.Extensions;
 using HyRest.Utilities;
 using HyRest.Administration;
+using System.Collections.ObjectModel;
 
 namespace HyRest.DocumentManagement;
-public sealed class Document : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, DocumentModel>
+public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
 {
     private DocumentType? _documentType { get; set; }
     private DocumentLocks? _locks { get; set; }
@@ -35,12 +36,12 @@ public sealed class Document : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore,
         }
     }
     [JsonIgnore]
-    public IReadOnlyCollection<Note> Notes
+    public IReadOnlyList<Note> Notes
     {
         get
         {
             if (_notes == null)
-                GetNoteCollection().Wait();
+                GetNoteCollection().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _notes ?? [];
         }
     }
@@ -49,7 +50,7 @@ public sealed class Document : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore,
         get
         {
             if (_createdBy == null)
-                GetUserInfo().Wait();
+                GetUserInfo();
             return _createdBy;
         }
     }    
@@ -63,40 +64,55 @@ public sealed class Document : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore,
         get
         {
             if (_keywordCollection == null)
-                GetKeywordCollection().Wait();
+                GetKeywordCollection().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _keywordCollection;
         }
     }
     [JsonIgnore]
-    public IReadOnlyCollection<Revision> Revisions
+    public IReadOnlyList<Revision> Revisions
     {
         get
         {
             if (_revisions == null)
-                GetRevisions().Wait();
+                GetRevisions().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _revisions ?? [];
         }
     }
     public DocumentHistory GetHistory(DateTimeOffset? startDate = null, DateTimeOffset? endDate = null, string? userId = null)
     {
         var task = GetHistoryAsync(startDate, endDate, userId);
-        task.Wait();
-        if (task.IsCompletedSuccessfully)
+        if (task.Wait(Module.App.ClientOptions.RequestTimeOut) && task.IsCompletedSuccessfully)
             return task.Result;
         else
-            throw task.Exception?.InnerException ?? task.Exception ?? new Exception("Could not retrieve the document history");
+            return new();
     }
-    public Task<DocumentHistory> GetHistoryAsync(DateTimeOffset? startDate = null, DateTimeOffset? endDate = null, string? userId = null)
-        => Module.Run(Api.History(Item.Id, startDate, endDate, userId));
-    public Task<NoteCollectionModel> GetNotesForRevision(string revisionId, int? page)
-        => Module.Run(Api.GetNoteCollectionForDocument(Item.Id, revisionId, page));
+    public Task<DocumentHistory?> GetHistoryAsync(DateTimeOffset? startDate = null, DateTimeOffset? endDate = null, string? userId = null, CancellationToken token = default)
+        => Module.Run(Module.Api.History(Item.Id, startDate, endDate, userId), token);
+
+    public IReadOnlyList<Note> GetNotesForRevision(string revisionId, int? page)
+    {
+        var task = GetNotesForRevisionAsync(revisionId, page);
+        if(task.Wait(Module.App.ClientOptions.RequestTimeOut) && task.IsCompletedSuccessfully)
+        {
+            return task.Result;
+        }
+        return [];
+    }
+    public async Task<IReadOnlyList<Note>> GetNotesForRevisionAsync(string revisionId, int? page, CancellationToken token = default)
+    {
+        List<Note> notes = [];
+        var col = await Module.Run(Module.Api.GetNoteCollectionForDocument(Item.Id, revisionId, page), token);
+        if(col != null)
+            col.Items.ToList().ForEach(n => notes.Add(new Note(Module, n)));
+        return notes;
+    }
 
     public FileResponse GetContent(string revisionId = "latest", string fileTypeId = "default", string? pages = null, Context? context = Context.View,
         int? height = null, int? width = null, Fit? fit = null, string? accept = "*/*", string? if_Match = null, string? range = null)
     {
         var task = GetContentAsync(revisionId, fileTypeId, pages, context, height, width, fit, accept, if_Match, range);
-        task.Wait();
-        if (task.IsCompletedSuccessfully)
+        
+        if (task.Wait(Module.App.ClientOptions.RequestTimeOut) && task.IsCompletedSuccessfully)
             return task.Result;
         else
             throw task.Exception?.InnerException ?? task.Exception ?? new Exception("Failed to retrieve document content.");
@@ -104,30 +120,35 @@ public sealed class Document : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore,
     public async Task<FileResponse> GetContentAsync(string revisionId="latest", string fileTypeId ="default", string? pages = null, Context? context = Context.View,
         int? height = null, int? width = null, Fit? fit = null, string? accept = "*/*", string? if_Match = null, string? range = null)
     {
-        var response = await Api.GetContentForRenditionOfRevisionOfDocument(Item.Id, revisionId, fileTypeId, pages, context, height, width, fit, accept, if_Match, range);
+        var response = await Module.Api.GetContentForRenditionOfRevisionOfDocument(Item.Id, revisionId, fileTypeId, pages, context, height, width, fit, accept, if_Match, range);
         return new FileResponse(response);
     }
-    public Task Delete() => Api.DeleteDocumentById(Item.Id);
-    public Task AddNewNote(AddNoteProperties addNoteProperties, string revisionId = "latest")
-        => Module.Run(Api.PostNoteOnDocument(Item.Id, revisionId, addNoteProperties));
+    public void Delete() => DeleteAsync().Wait(Module.App.ClientOptions.RequestTimeOut);
+    public Task DeleteAsync(CancellationToken token = default) => Module.Run(Module.Api.DeleteDocumentById(Item.Id), default);
+    public void AddNote(AddNoteProperties addNoteProperties, string revisionId = "latest")
+        => AddNoteAsync(addNoteProperties, revisionId).Wait(Module.App.ClientOptions.RequestTimeOut);
+    public Task AddNoteAsync(AddNoteProperties addNoteProperties, string revisionId = "latest", CancellationToken token = default)
+        => Module.Run(Module.Api.PostNoteOnDocument(Item.Id, revisionId, addNoteProperties), token);
 
     public void UpdateKeywords()
-        => UpdateKeywordsAsync().Wait();
+        => UpdateKeywordsAsync().Wait(Module.App.ClientOptions.RequestTimeOut);
     public async Task UpdateKeywordsAsync()
     {
-        await Module.Run(Api.PutKeywordCollectionForDocument(Id.ToString(), KeywordCollection.GetModel()));
+        await Module.Run(Module.Api.PutKeywordCollectionForDocument(Id.ToString(), KeywordCollection.GetModel()));
         await GetKeywordCollection();
     }
 
     public DocumentReindexProperties CreateDocumentReindexProperties()
         => new DocumentReindexProperties(Module, this);
-    public Task UpdateDocDate(DateTime documentDate) => Api.PatchDocumentById(Item.Id, new DocumentPatchRequestModel { DocumentDate = documentDate});
-    public async Task<Document> Reindex(DocumentReindexProperties props)
-    {
-        var resp = await Module.Run(Api.PutDocumentById(Item.Id, props.GetModel()));
+    public void UpdateDocumentDate(DateTime documentDate) => UpdateDocumentDateAsync(documentDate).Wait(Module.App.ClientOptions.RequestTimeOut);
+    public Task UpdateDocumentDateAsync(DateTime documentDate, CancellationToken token = default) 
+        => Module.Run(Module.Api.PatchDocumentById(Item.Id, new DocumentPatchRequestModel { DocumentDate = documentDate}),token);    
+    //public async Task<Document> ReindexAsync(DocumentReindexProperties props)
+    //{
+    //    var resp = await Module.Run(Module.Api.PutDocumentById(Item.Id, props.GetModel()));
         
-        return await Module.GetDocumentByIdAsync(Id);
-    }
+    //    return await Module.GetDocumentByIdAsync(Id);
+    //}
     private void GetDocumentType()
     {
         if(Item.TypeId != null)
@@ -137,22 +158,22 @@ public sealed class Document : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore,
                 _documentType = d;
         }
     }
-    private async Task GetRevisions()
+    private async Task GetRevisions(CancellationToken token = default)
     {
-        var revCol = await Module.Run(Api.GetRevisionCollectionForDocument(Item.Id));
+        var revCol = await Module.Run(Module.Api.GetRevisionCollectionForDocument(Item.Id), token);
         if (revCol != null && revCol.Items.Count > 0)
             _revisions = revCol.Items.Select(i => new Revision(Module, Item, i)).ToList();
     }
 
-    private async Task GetKeywordCollection()
+    private async Task GetKeywordCollection(CancellationToken token = default)
     {
-        var keycol = await Module.Run(Api.GetKeywordCollectionForDocument(Item.Id, false));
+        var keycol = await Module.Run(Module.Api.GetKeywordCollectionForDocument(Item.Id, false), token);
         if (keycol != null)
             _keywordCollection = new KeywordCollection(Module, keycol);
     }
-    private async Task GetNoteCollection(string revisionId = "latest")
+    private async Task GetNoteCollection(string revisionId = "latest", CancellationToken token = default)
     {
-        var noteCol = await Module.Run(Api.GetNoteCollectionForDocument(Item.Id, revisionId));
+        var noteCol = await Module.Run(Module.Api.GetNoteCollectionForDocument(Item.Id, revisionId), token);
         if(noteCol != null)
             _notes = noteCol.Items                    
                     .Select(c => new Note(Module, c))
@@ -160,9 +181,10 @@ public sealed class Document : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore,
     }
     public override string? ToJson()
         => JsonUtility.Serialize(this);
-    private async Task GetUserInfo()
+    private void GetUserInfo()
     {
         var admin = (OnBaseAdministration)Module.App.Administration;
-        _createdBy = admin.Users.Find(Item.CreatedByUserId);
+        if(Item.CreatedByUserId != null)
+            _createdBy = admin.Users.Find(Item.CreatedByUserId);
     }
 }

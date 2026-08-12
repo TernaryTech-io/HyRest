@@ -36,15 +36,14 @@ public sealed partial class OnBaseCore : OnBaseModule<IOnBaseDocumentAPI>, IOnBa
     public Document? GetDocumentById(string id)
     {
         var docTask = GetDocumentByIdAsync(id);
-        docTask.Wait();
-        if (docTask.IsCompletedSuccessfully)
+        if (docTask.Wait(App.ClientOptions.RequestTimeOut) && docTask.IsCompletedSuccessfully)
             return docTask.Result;
         else
             return null;
     }
-    public async Task<Document?> GetDocumentByIdAsync(string id)
+    public async Task<Document?> GetDocumentByIdAsync(string id, CancellationToken token = default)
     {
-        var doc = await Run(Api<IOnBaseDocumentAPI>().GetDocumentById(id));
+        var doc = await Run(Api.GetDocumentById(id), token);
         if (doc != null)
             return new Document(this, doc);
         else

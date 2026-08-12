@@ -1,18 +1,18 @@
 ﻿using HyRest.Cache;
 using System.Text;
+using Ternary.DataConversions.Extensions;
 
 namespace HyRest.Administration;
 
 public class Users : OnBaseItemCollectionService<OnBaseAdministration, User>
-{
-    internal Users(OnBaseAdministration module, OnBaseAppCache<User> cache) : base(module, cache)
+{   
+    internal Users(OnBaseAdministration module) : base(module)
     {
 
     }
-
     protected override async Task GetCollection(CancellationToken token = default)
     {
-        var col = await Module.Run<IOnBaseAdministrationAPI, UserCollectionModel>((api,ct) => api.UsersGet());
+        var col = await Module.Run(Module.Api.UsersGet(), token);            
         if (col != null)
         {
             col.Items
@@ -24,56 +24,19 @@ public class Users : OnBaseItemCollectionService<OnBaseAdministration, User>
                 });
         }
     }
-    protected override async Task<User?> GetOne(string identifier, CancellationToken token = default)
+    protected override async Task<User?> GetOne(long id, CancellationToken token = default)
     {
-        if (long.TryParse(identifier, out long id))
+        var item = await Module.App.Cache.GetOrCreateAsync<User>(id, null, token);
+        if (item != null)
+            return item;
+        var model = await Module.Run(Module.Api.UsersGet2(id.ToString()), token);
+        if (model != null)
         {
-            var model = await Module.Run<IOnBaseAdministrationAPI, UserModel>((api, ct) => api.UsersGet2(identifier));
-            if (model != null)
-                return new User(Module, model);
+            var user = new User(Module, model);
+            Module.App.Cache.SetAsync(user, token);
+            return user;
         }
+        return null;
     }
 }
 
-public class User : OnBaseItemService<OnBaseAdministration, UserModel>
-{
-    private bool _hydrated;
-    internal User(OnBaseAdministration module, UserModel user) : base (module, user)
-    {
-
-    }
-    public string? Name
-    {
-        get
-        {
-            if (Item.Name == null)
-                PopulateDetails().Wait();
-            return Item.Name;
-        }
-    }
-    public string? RealName
-    {
-        get
-        {
-            if (Item.RealName == null)
-                PopulateDetails().Wait();
-            return Item.RealName;
-        }
-    }
-    public string? EmailAddress
-    {
-        get
-        {
-            if (Item.EmailAddress == null)
-                PopulateDetails().Wait();
-            return Item.EmailAddress;
-        }
-    }
-    public bool Active => Item.Deactivated ? true : false;
-
-    internal async Task PopulateDetails()
-    {
-        var userModel = await Module.Run(Module.Api<IOnBaseAdministrationAPI>().UsersGet2(Item.Id, null));
-        base.ReplaceModel(userModel);
-    }
-}

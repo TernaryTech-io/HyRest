@@ -2,7 +2,7 @@
 
 namespace HyRest.DocumentManagement;
 
-public class NoteType : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore, NoteTypeModel>
+public class NoteType : OnBaseItemTypeService<OnBaseCore, NoteTypeModel>
 {
     public NoteType(OnBaseCore core, NoteTypeModel item) : base(core,item)
     {

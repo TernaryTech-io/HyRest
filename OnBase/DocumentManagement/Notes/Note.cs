@@ -1,15 +1,20 @@
 ﻿using Ternary.DataConversions.Extensions;
 using HyRest.Utilities;
+using System.Text.Json.Serialization;
+using HyRest.Administration;
 
 namespace HyRest.DocumentManagement;
-public class Note : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, NoteModel>
+public class Note : OnBaseItemService<OnBaseCore, NoteModel>
 {
     private NoteType? _noteType { get; set; }
+    private User? _createdByUser { get; set; }
     internal Note(OnBaseCore core, NoteModel item) : base(core,item)
     {
         
     }
-    public NoteType? NoteType
+    public override string? TypeId => Item.NoteTypeId;
+    [JsonIgnore]
+    public NoteType NoteType
     {
         get
         {
@@ -19,7 +24,17 @@ public class Note : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, NoteModel>
         }
     }
     public string Text => Item.Text ?? string.Empty;
-    public string CreatedUserId => Item.CreatedUserId ?? string.Empty;
+    public string CreatedByUserId => Item.CreatedUserId ?? string.Empty;
+    [JsonIgnore]
+    public User CreatedByUser
+    {
+        get
+        {
+            if (_createdByUser == null)
+                GetCreatedByUser();
+            return _createdByUser;
+        }
+    }
     public DateTime Created => Item.Created.ConvertTo<DateTime>();
     public long DocumentId => Item.DocumentId.ConvertTo<long>();
     public long DocumentRevisionId => Item.DocumentRevisionId.ConvertTo<long>();
@@ -48,20 +63,29 @@ public class Note : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, NoteModel>
         };
     }
 
-    public async Task<Note> UpdateAsync(UpdateNoteProperties properties)
+    public async Task<Note> UpdateAsync(UpdateNoteProperties properties, CancellationToken token = default)
     {
-        var model = await Module.Run(Api.PatchNoteByNoteId(Item.Id, properties));
+        var model = await Module.Run(Module.Api.PatchNoteByNoteId(Item.Id, properties));
         if (model != null)
             return new Note(Module, model);
         return this;
     }
     public Task DeleteAsync()
-        => Module.Run(Api.DeleteNoteByNoteId(Item.Id));   
+        => Module.Run(Module.Api.DeleteNoteByNoteId(Item.Id));   
     private void GetNoteType()
     {
         var item = Module.NoteTypes.Find(Item.NoteTypeId);
         if (item != null && item is NoteType nt)
             _noteType = nt;
+    }
+    private void GetCreatedByUser()
+    {
+        if(CreatedByUserId != null)
+        {
+            var admin = (OnBaseAdministration)Module.App.Administration;
+            _createdByUser = admin.Users[CreatedByUserId];
+        }
+        
     }
     public override string? ToJson()
         => JsonUtility.Serialize(this);

@@ -1,10 +1,11 @@
 ﻿using System.Globalization;
 using Ternary.DataConversions.Providers;
 using HyRest.Utilities;
+using System.Text.Json.Serialization;
 
 namespace HyRest.DocumentManagement;
 
-public class KeywordType : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore, KeywordTypeModel>
+public class KeywordType : OnBaseItemTypeService<OnBaseCore, KeywordTypeModel>
 {
     private CurrencyFormat? _currencyFormat { get; set; }
     internal CultureInfo Culture => new CultureInfo(Module.App.ClientOptions.DefaultLanguage);
@@ -17,12 +18,13 @@ public class KeywordType : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore,
     public bool UsedForRetrieval => Item.UsedForRetrieval;
     public bool Invisible => Item.Invisible;
     public AlphanumericSettings? AlphanumericSettings => Item.AlphanumericSettings;
+    [JsonIgnore]
     public CurrencyFormat? CurrencyFormat
     {
         get
         {
             if (_currencyFormat == null)
-                PopulateCurrencyFormat().Wait();
+                PopulateCurrencyFormat().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _currencyFormat;
         }
     }
@@ -32,7 +34,7 @@ public class KeywordType : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore,
     {
         if (Item.CurrencyFormatId != null)
         {
-            var item = await Module.Run(Api.GetCurrencyFormatById(Item.CurrencyFormatId));
+            var item = await Module.Run(Module.Api.GetCurrencyFormatById(Item.CurrencyFormatId));
             if (item != null)
                 _currencyFormat = new CurrencyFormat(Module, item);
         }

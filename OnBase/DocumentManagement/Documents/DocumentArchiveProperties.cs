@@ -2,7 +2,7 @@
 
 namespace HyRest.DocumentManagement;
 
-public class DocumentArchiveProperties : OnBaseRestService<IOnBaseDocumentAPI>, IAsyncDisposable, IDisposable
+public class DocumentArchiveProperties : OnBaseRestService, IAsyncDisposable, IDisposable
 {
     private OnBaseCore _core => (OnBaseCore)Module;
     private readonly DocumentArchivePropertiesModel _model;     
@@ -15,7 +15,7 @@ public class DocumentArchiveProperties : OnBaseRestService<IOnBaseDocumentAPI>, 
     {
         _model = new DocumentArchivePropertiesModel();
         SetDocumentType(documentType);    
-        GetKeywordCollection().Wait();
+        GetKeywordCollectionAsync().Wait(_core.App.ClientOptions.RequestTimeOut);
         _model.DocumentDate = DateTime.Now;
     }
     public FileType FileType
@@ -23,7 +23,7 @@ public class DocumentArchiveProperties : OnBaseRestService<IOnBaseDocumentAPI>, 
         get
         {
             if (_fileType == null && Files.Count > 0)
-                GetFileTypeId().Wait();
+                GetFileTypeAsync().Wait(_core.App.ClientOptions.RequestTimeOut);
             return _fileType;
         }
     }
@@ -34,14 +34,14 @@ public class DocumentArchiveProperties : OnBaseRestService<IOnBaseDocumentAPI>, 
     public string Comment { get => _model.Comment; set => _model.Comment = value; }
     public DateTime DocumentDate { get => _model.DocumentDate.DateTime; set => _model.DocumentDate = value; }
     
-    public async Task<Document?> ArchiveDocument()
+    public async Task<Document?> ArchiveDocumentAsync(CancellationToken token = default)
     {
         if (FileType == null)
-            await GetFileTypeId();
-        await StageUpload();
-        await UploadBytes();
-        await AddMetadata();
-        return await _core.GetDocumentByIdAsync(_documentId);
+            await GetFileTypeAsync(token);
+        await StageUploadAsync(token);
+        await UploadBytesAsync(token);
+        await AddMetadataAsync(token);
+        return await _core.GetDocumentByIdAsync(_documentId, token);
     }
     public async ValueTask DisposeAsync()
     {
@@ -49,7 +49,7 @@ public class DocumentArchiveProperties : OnBaseRestService<IOnBaseDocumentAPI>, 
         {
             await Parallel.ForEachAsync(Files, async (file, ct) =>
             {
-                await Module.Run(Api.DeleteFileUploadById(file.Id));
+                await _core.Run(_core.Api.DeleteFileUploadById(file.Id));
             });
         }
     }
@@ -57,15 +57,15 @@ public class DocumentArchiveProperties : OnBaseRestService<IOnBaseDocumentAPI>, 
     {
         if (_deleteOnDispose)
         {
-            Parallel.ForEach(Files, (file, ct) =>
+            Parallel.ForEach(Files, (file) =>
             {
-                Module.Run(Api.DeleteFileUploadById(file.Id)).Wait();
+                _core.Run(_core.Api.DeleteFileUploadById(file.Id)).Wait(_core.App.ClientOptions.RequestTimeOut);
             });
         }
     }
-    internal async Task GetKeywordCollection()
+    internal async Task GetKeywordCollectionAsync(CancellationToken token = default)
     {
-        var kc = await _documentType.GetDefaultKeywords();
+        var kc = await _documentType.GetDefaultKeywordsAsync(token);
         if (kc != null)
             _model.KeywordCollection = kc.GetModel();
     }
@@ -83,54 +83,61 @@ public class DocumentArchiveProperties : OnBaseRestService<IOnBaseDocumentAPI>, 
     {
         _model.KeywordCollection = collection.GetModel();
     }    
-    private async Task StageUpload()
+    private async Task StageUploadAsync(CancellationToken token = default)
     {
-        foreach(var a in Files)
+        while(!token.IsCancellationRequested)
         {
-            var reqBody = a.CreateUploadRequest();
-            var resp = await Module.Run(Api.PostFileUploadMetadata(reqBody));
-            if(resp!= null)
-                a.AddUploadPostResponse(resp);
+            foreach (var a in Files)
+            {
+                var reqBody = a.CreateUploadRequest();
+                var resp = await _core.Run(_core.Api.PostFileUploadMetadata(reqBody), token);
+                if (resp != null)
+                    a.AddUploadPostResponse(resp);
+            }
         }
     }
-    private async Task UploadBytes()
+    private async Task UploadBytesAsync(CancellationToken token = default)
     {
         int successful = 0;
-        foreach(var a in Files)
+        while(!token.IsCancellationRequested)
         {
-            var chunks = a.Bytes.Chunk(a.PartSize);
-            int partNo = 0;
-            int partSuccess = 0;
-            foreach (var chunk in chunks)
+            foreach (var a in Files)
             {
-                partNo++;
-                var partSize = chunk.Length;
-                var binaryContent = new ByteArrayContent(chunk);
-                await Module.Run(Api.PutFileUploadById(a.Id, partNo, binaryContent));
-                partSuccess++;
+                var chunks = a.Bytes.Chunk(a.PartSize);
+                int partNo = 0;
+                int partSuccess = 0;
+                foreach (var chunk in chunks)
+                {
+                    partNo++;
+                    var partSize = chunk.Length;
+                    var binaryContent = new ByteArrayContent(chunk);
+                    await _core.Run(_core.Api.PutFileUploadById(a.Id, partNo, binaryContent), token);
+                    partSuccess++;
+                }
+                if (partSuccess == chunks.Count())
+                    successful++;
             }
-            if (partSuccess == chunks.Count())
-                successful++;
-        }
-        if (successful != Files.Count)
-            throw new Exception("Not all parts where successfully uploaded.");
+            if (successful != Files.Count)
+                throw new Exception("Not all parts where successfully uploaded.");
+            break;
+        }        
     }    
-    private async Task GetFileTypeId()
+    private async Task GetFileTypeAsync(CancellationToken token = default)
     {
         if(_fileType == null)
         {
             var file = _archiveFiles[0];
-            var fileType = await _core.FileTypes.BestGuessAsync(file.Extension) 
+            var fileType = await _core.FileTypes.BestGuessAsync(file.Extension, token) 
                 ?? throw new Exception($"A file type couldnot be determined from extension {file.Extension}.");
             fileType = _core.FileTypes.Find(fileType.Id);
             SetFileType(fileType);
         }        
     }
-    private async Task AddMetadata()
+    private async Task AddMetadataAsync(CancellationToken token = default)
     {
         _model.KeywordCollection = KeywordCollection.GetModel();
         _model.Uploads = Files.Select(f => new UploadModel { Id = f.Id }).ToList();
-        var resp = await Module.Run(Api.PostDocument(_model));
+        var resp = await _core.Run(_core.Api.PostDocument(_model), token);
         if (resp != null)
             _documentId = resp.Id;
     }

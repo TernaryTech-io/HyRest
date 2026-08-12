@@ -4,7 +4,7 @@ using HyRest.Utilities;
 
 namespace HyRest.DocumentManagement;
 
-public class KeywordValue : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, KeywordValueModel>
+public class KeywordValue : OnBaseItemService<OnBaseCore, KeywordValueModel>
 {
     private readonly IDataTypeConversionProvider _handler;
     internal KeywordValue(OnBaseCore core, KeywordValueModel value, IDataTypeConversionProvider handler) : base(core,value)

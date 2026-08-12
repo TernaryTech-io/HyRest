@@ -3,7 +3,7 @@ using HyRest.Utilities;
 
 namespace HyRest.DocumentManagement;
 
-public sealed class DocumentType : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore, DocumentTypeModel>
+public sealed class DocumentType : OnBaseItemTypeService<OnBaseCore, DocumentTypeModel>
 {
     private FileType? _fileType { get; set; }
     private AutoFillKeywordSet? _autoFillKeywordSet { get; set; }
@@ -48,13 +48,21 @@ public sealed class DocumentType : OnBaseItemTypeService<IOnBaseDocumentAPI, OnB
         get
         {
             if (_keywordTypeCollection == null)
-                PopulateKeywordTypes().Wait();
+                PopulateKeywordTypes().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _keywordTypeCollection;
         }
     }    
-    public async Task<KeywordCollection> GetDefaultKeywords()
+    public KeywordCollection GetDefaultKeywords()
     {
-        var model = await Module.Run(Api.GetDefaultKeywordCollectionForDocumentType(Item.Id, Options.DefaultLanguage));
+        var task = GetDefaultKeywordsAsync();
+        if (task.Wait(Module.App.ClientOptions.RequestTimeOut) && task.IsCompletedSuccessfully)
+            return task.Result;
+        else
+            throw task.Exception?.InnerException ?? task.Exception ?? new Exception("Failed to retrieve default keywords");
+    }
+    public async Task<KeywordCollection> GetDefaultKeywordsAsync(CancellationToken token = default)
+    {
+        var model = await Module.Run(Module.Api.GetDefaultKeywordCollectionForDocumentType(Item.Id, Options.DefaultLanguage), token);
         if (model != null)
             return new KeywordCollection(Module, model);
         throw new Exception("Could not retrieve the default keywords for this document type.");
@@ -66,7 +74,7 @@ public sealed class DocumentType : OnBaseItemTypeService<IOnBaseDocumentAPI, OnB
     }
     private async Task PopulateKeywordTypes()
     {  
-        var ktgcol = await Module.Run(Api.GetKeywordTypeGroupCollectionForDocumentType(Item.Id, Options.DefaultLanguage));
+        var ktgcol = await Module.Run(Module.Api.GetKeywordTypeGroupCollectionForDocumentType(Item.Id, Options.DefaultLanguage));
         if (ktgcol != null)
         {
             _keywordTypeCollection = new KeywordTypeCollection(Module, ktgcol);

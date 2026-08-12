@@ -4,15 +4,15 @@ using HyRest.Utilities;
 
 namespace HyRest.DocumentManagement;
 
-public class NoteTypes : OnBaseItemTypeCollectionService<IOnBaseDocumentAPI, OnBaseCore, NoteType>
+public class NoteTypes : OnBaseItemTypeCollectionService<OnBaseCore, NoteType>
 {
     internal NoteTypes(OnBaseCore core) : base(core)
     {
         
     }
-    protected override async Task GetCollection()
+    protected override async Task GetCollection(CancellationToken token = default)
     {
-        var col = await Module.Run(Api.GetNoteTypeCollection(null, Options.DefaultLanguage));
+        var col = await Module.Run(Module.Api.GetNoteTypeCollection(null, Options.DefaultLanguage), token);
         if (col != null)
         {
             col.Items
@@ -20,6 +20,7 @@ public class NoteTypes : OnBaseItemTypeCollectionService<IOnBaseDocumentAPI, OnB
                 .ToList()
                 .ForEach(i => Add(i));
         }
+        base.GetCollection(token);
     }
     public override string? ToJson()
         => JsonUtility.Serialize(this);

@@ -2,7 +2,7 @@
 
 namespace HyRest.DocumentManagement;
 
-public class KeywordOptions : OnBaseRestService<IOnBaseDocumentAPI>
+public class KeywordOptions : OnBaseRestService
 {
     private readonly KeywordOptionsModel _model;
     private OnBaseCore _core => (OnBaseCore)base.Module;

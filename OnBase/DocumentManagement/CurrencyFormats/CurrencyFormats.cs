@@ -2,13 +2,13 @@
 
 namespace HyRest.DocumentManagement;
 
-public sealed class CurrencyFormats : OnBaseItemTypeCollectionService<IOnBaseDocumentAPI, OnBaseCore, CurrencyFormat>
+public sealed class CurrencyFormats : OnBaseItemTypeCollectionService<OnBaseCore, CurrencyFormat>
 {
 
     internal CurrencyFormats(OnBaseCore core) : base(core) { }
-    protected override async Task GetCollection()
+    protected override async Task GetCollection(CancellationToken token = default)
     {
-        var col = await Module.Run(Api.GetCurrencyFormatCollection(null, null, Options.DefaultLanguage));
+        var col = await Module.Run(Module.Api.GetCurrencyFormatCollection(null, null, Options.DefaultLanguage));
         if (col != null)
         {
             col.Items
@@ -16,6 +16,7 @@ public sealed class CurrencyFormats : OnBaseItemTypeCollectionService<IOnBaseDoc
                 .ToList()
                 .ForEach(i => Add(i));
         }
+        base.GetCollection(token);
     }  
     public override string? ToJson()
         => JsonUtility.Serialize(this);

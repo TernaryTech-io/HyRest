@@ -2,7 +2,7 @@
 
 namespace HyRest.CaseManagement;
 
-public class ColumnAttribute : OnBaseRestService<IOnBaseWorkViewAPI>
+public class ColumnAttribute : OnBaseRestService
 {
     private OnBaseWorkView _module => (OnBaseWorkView)base.Module;
     private ColumnModel _item { get; set; }
@@ -20,7 +20,7 @@ public class ColumnAttribute : OnBaseRestService<IOnBaseWorkViewAPI>
     public string DataAddress => _item.DataAddress;
 }
 
-public class EntryConstraintAttribute : OnBaseRestService<IOnBaseWorkViewAPI>
+public class EntryConstraintAttribute : OnBaseRestService
 {
     private OnBaseWorkView _module => (OnBaseWorkView)base.Module;
     List<long> DataAddressParts
@@ -40,7 +40,7 @@ public class EntryConstraintAttribute : OnBaseRestService<IOnBaseWorkViewAPI>
     public Operator Operator => _item.Operator;
 }
 
-public class FixedConstraintAttribute : OnBaseRestService<IOnBaseWorkViewAPI>
+public class FixedConstraintAttribute : OnBaseRestService
 {
     private OnBaseWorkView _module => (OnBaseWorkView)base.Module;
     List<long> DataAddressParts
@@ -61,7 +61,7 @@ public class FixedConstraintAttribute : OnBaseRestService<IOnBaseWorkViewAPI>
     public bool RightParenthesis => (int)_item.RightParenthesisCount > 0;
 }
 
-public class SortAttribute : OnBaseRestService<IOnBaseWorkViewAPI>
+public class SortAttribute : OnBaseRestService
 {
     private OnBaseWorkView _module => (OnBaseWorkView)base.Module;
     List<long> DataAddressParts

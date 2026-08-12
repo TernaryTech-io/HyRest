@@ -1,5 +1,6 @@
 ﻿using Duende.IdentityModel.Client;
 using HyRest.Identity.Credentials;
+using System.Reflection;
 
 namespace HyRest;
 public abstract class HylandAuthClient : IHylandAuthClient
@@ -22,7 +23,7 @@ public abstract class HylandAuthClient : IHylandAuthClient
         get
         {
             if (_userInfo == null)
-                GetUserInfoAsync().Wait();
+                GetUserInfoAsync().Wait(TimeSpan.FromSeconds(180));
             return _userInfo;
         }
     }
@@ -36,7 +37,7 @@ public abstract class HylandAuthClient : IHylandAuthClient
     }
     public string GetAccessToken()
     {
-        GetAccessTokenAsync().Wait();
+        GetAccessTokenAsync().Wait(TimeSpan.FromSeconds(180));
         return _token?.AccessToken
             ?? throw new Exception("Failed to retrieve access token. User is not authenticated.");
     }

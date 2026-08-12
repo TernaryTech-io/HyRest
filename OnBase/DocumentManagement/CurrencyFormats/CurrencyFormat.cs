@@ -3,7 +3,7 @@ using HyRest.Utilities;
 
 namespace HyRest.DocumentManagement;
 
-public sealed class CurrencyFormat : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore, CurrencyFormatModel>
+public sealed class CurrencyFormat : OnBaseItemTypeService<OnBaseCore, CurrencyFormatModel>
 {
     private CultureInfo _formatProvider;
     public IFormatProvider FormatProvider => _formatProvider;

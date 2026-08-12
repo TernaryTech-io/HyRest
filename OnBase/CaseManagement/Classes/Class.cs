@@ -3,7 +3,7 @@ using Ternary.DataConversions.Extensions;
 
 namespace HyRest.CaseManagement;
 
-public class Class : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkView, ClassModel>
+public class Class : OnBaseItemTypeService<OnBaseWorkView, ClassModel>
 {
     private ClassAccessRights? _accessRights { get; set; }
     private List<Attribute> _attributes { get; set; } = [];
@@ -12,9 +12,6 @@ public class Class : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkView, C
     {
 
     }
-    public long Id => Item.Id.ConvertTo<long>();
-    public string Name => Item.Name ?? string.Empty;
-    public string SystemName => Item.SystemName ?? string.Empty;
     /// <summary>
     /// The base most Class Id of the current class.
     /// </summary>
@@ -25,7 +22,7 @@ public class Class : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkView, C
         get
         {
             if(_attributes.Count == 0)
-                GetClassAttributes().Wait();
+                GetClassAttributes().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _attributes.AsReadOnly();
         }
     }
@@ -34,7 +31,7 @@ public class Class : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkView, C
         get
         {
             if (_accessRights == null)
-                GetAccessRights().Wait();
+                GetAccessRights().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _accessRights;
         }
     }
@@ -42,12 +39,12 @@ public class Class : OnBaseItemTypeService<IOnBaseWorkViewAPI, OnBaseWorkView, C
     {
         if (_accessRights == null)
         {
-            _accessRights = await Module.Run(Api.AccessRights(Item.Id));
+            _accessRights = await Module.Run(Module.Api.AccessRights(Item.Id));
         }
     }
-    private async Task GetClassAttributes()
+    private async Task GetClassAttributes(CancellationToken token = default)
     {
-        var attributes = await Module.Run(Api.Attributes(Item.Id, Module.App.ClientOptions.DefaultLanguage));
+        var attributes = await Module.Run(Module.Api.Attributes(Item.Id, Module.App.ClientOptions.DefaultLanguage), token);
         if(attributes != null)
             _attributes = attributes.Items.Select(a => new Attribute(Module, a)).ToList();
     }

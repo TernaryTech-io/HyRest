@@ -1,14 +1,15 @@
 ﻿
 
 using HyRest.Utilities;
+using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace HyRest.DocumentManagement;
 
-public class Revision : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, RevisionModel>
+public class Revision : OnBaseItemService<OnBaseCore, RevisionModel>
 {
     private readonly DocumentModel _doc;
-    private List<Rendition> _renditions { get; set; } = [];
+    private List<Rendition> _renditions { get; set; }
     public Revision(OnBaseCore core, DocumentModel doc, RevisionModel revision) : base(core, revision)
     {
         _doc = doc;
@@ -20,13 +21,13 @@ public class Revision : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, Revisi
         get
         {
             if (_renditions == null)
-                PopulateRenditions().Wait();
+                PopulateRenditions().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _renditions ?? [];
         }
     }
     private async Task PopulateRenditions()
     {
-        var renCol = await Module.Run(Api.GetRenditionCollectionForRevisionOfDocument(_doc.Id, Item.Id));
+        var renCol = await Module.Run(Module.Api.GetRenditionCollectionForRevisionOfDocument(_doc.Id, Item.Id));
         if (renCol != null && renCol.Items.Count > 0)
             _renditions = renCol.Items.Select(i => new Rendition(Module, Item, i)).ToList();
     }

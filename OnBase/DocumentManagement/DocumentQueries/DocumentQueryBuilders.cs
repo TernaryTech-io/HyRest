@@ -1,4 +1,5 @@
 ﻿using HyRest.Utilities;
+using System.Reflection;
 
 namespace HyRest.DocumentManagement;
 
@@ -59,14 +60,14 @@ public class DocumentTypeQueryBuilder : DocumentQueryBuilder<DocumentType, Docum
     public override QueryType Type => QueryType.DocumentType;
     public override DocumentTypeQueryBuilder AddItem(string name)
     {
-        var dt = _core.DocumentTypes.Find(name);
+        var dt = _core.DocumentTypes[name];
         if (dt == null)
             throw new Exception($"Could not locate a document type with name {name}");
         return AddItem(dt);
     }
     public override DocumentTypeQueryBuilder AddItem(long id)
     {
-        var dt = _core.DocumentTypes.Find(id);
+        var dt = _core.DocumentTypes[id];
         if (dt == null)
             throw new Exception($"Could not locate a document type with id {id}");
         return AddItem(dt);
@@ -155,9 +156,9 @@ public abstract class DocumentQueryBuilder<TItem, TQuery> : DocumentQueryBuilder
     }
     public string? ToJson()
         => JsonUtility.Serialize(this);
-    public override async Task<DocumentQuery> CreateQueryAsync(bool includeItemCount = false)
+    public override async Task<DocumentQuery> CreateQueryAsync(bool includeItemCount = false, CancellationToken token = default)
     {
-        var resp = await _core.Run(_core.Api<IOnBaseDocumentAPI>().PostDocumentQuery(GetModel(), includeItemCount));
+        var resp = await _core.Run(_core.Api.PostDocumentQuery(GetModel(), includeItemCount), token);
         if (resp != null)
         {
             int count = 0;
@@ -177,8 +178,8 @@ public abstract class DocumentQueryBuilder<TItem, TQuery> : DocumentQueryBuilder
     public override DocumentQuery CreateQuery(bool includeItemCount = false)
     {
         var dqTask = CreateQueryAsync(includeItemCount);
-        dqTask.Wait();
-        if (dqTask.IsCompletedSuccessfully)
+        
+        if (dqTask.Wait(_core.App.ClientOptions.RequestTimeOut) && dqTask.IsCompletedSuccessfully)
             return dqTask.Result;
         else throw dqTask.Exception ?? new Exception("Failed to intiate document query.");
     }
@@ -212,7 +213,7 @@ public abstract class DocumentQueryBuilder : IDocumentQueryBuilder
     public abstract IDocumentQueryBuilder AddDateRange(DateRange dateRange);
     public abstract IDocumentQueryBuilder AddDateRange(DateTime start, DateTime end);
     public abstract DocumentQuery CreateQuery(bool includeItemCount = false);
-    public abstract Task<DocumentQuery> CreateQueryAsync(bool includeItemCount = false);
+    public abstract Task<DocumentQuery> CreateQueryAsync(bool includeItemCount = false, CancellationToken token = default);
 
 }
 public interface IDocumentQueryBuilder
@@ -229,5 +230,5 @@ public interface IDocumentQueryBuilder
     IDocumentQueryBuilder AddDateRange(DateRange dateRange);
     IDocumentQueryBuilder AddDateRange(DateTime start, DateTime end);
     DocumentQuery CreateQuery(bool includeItemCount = false);
-    Task<DocumentQuery> CreateQueryAsync(bool includeItemCount = false);
+    Task<DocumentQuery> CreateQueryAsync(bool includeItemCount = false, CancellationToken token = default);
 }

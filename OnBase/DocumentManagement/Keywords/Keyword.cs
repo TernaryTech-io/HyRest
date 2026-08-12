@@ -5,14 +5,15 @@ using Ternary.DataConversions.Providers;
 using HyRest.Utilities;
 
 namespace HyRest.DocumentManagement;
-public class Keyword : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, KeywordModel>, IKeyword
+public class Keyword : OnBaseItemService<OnBaseCore, KeywordModel>, IKeyword
 {
-    protected readonly IDataTypeConversionProvider _handler;
+    protected IDataTypeConversionProvider _handler => KeywordType.CreateKeywordDataTypeHandler();
     private KeywordType? _keyType { get; set; }    
     internal Keyword(OnBaseCore core, KeywordModel keyword) : base(core, keyword)
     {
-        _handler = KeywordType.CreateKeywordDataTypeHandler();
+        
     }
+    public override string? TypeId => Item.Id;
     public override string Name => KeywordType.Name;
     public override string SystemName => KeywordType.SystemName;
     [HyRestConverter<DataTypeToStringConverter>]
@@ -32,14 +33,14 @@ public class Keyword : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, Keyword
     [JsonIgnore]
     public bool HasValues => Item.Values.Count() > 0;
     [HyRestConverter<KeywordValuesToStringConverter>]
-    public IReadOnlyCollection<KeywordValue> Values => Item.Values.Select(v => new KeywordValue(Module, v, _handler)).ToList().AsReadOnly();
+    public IReadOnlyCollection<KeywordValue> Values => Item.Values.Select(v => new KeywordValue(Module, v, _handler)).ToList().AsReadOnly();    
     [JsonIgnore]
     public KeywordType KeywordType
     {
         get
         {
             if (_keyType == null)
-                PopulateKeywordType().Wait();
+                PopulateKeywordType().Wait(Module.App.ClientOptions.RequestTimeOut);
             return _keyType;            
         }
     }    
@@ -49,7 +50,7 @@ public class Keyword : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, Keyword
     { 
         if(Item.Id != null)
         {
-            var item = await Module.Run(Api.GetKeywordTypeById(Item.Id, Options.DefaultLanguage));
+            var item = await Module.Run(Module.Api.GetKeywordTypeById(Item.Id, Options.DefaultLanguage));
             if (item != null)
                 _keyType = new KeywordType(Module, item);
         }
@@ -59,7 +60,6 @@ public class Keyword : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, Keyword
 }
 public interface IKeyword : IOnBaseItemService
 {
-    long Id { get; }
     object? this[int i] { get; }
     public object? this[object value] { get; }
     int ValueCount { get; }
