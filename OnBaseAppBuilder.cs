@@ -33,12 +33,11 @@ public class OnBaseAppBuilder
     /// </summary>
     /// <param name="credentials"></param>
     /// <param name="optionsAction"></param>
-    internal OnBaseAppBuilder(IAuthenticationCredentials credentials, Action<HylandClientOptions> optionsAction, IServiceCollection? serviceCollection = null)
+    public OnBaseAppBuilder(IAuthenticationCredentials credentials, HylandClientOptions options, IServiceCollection? serviceCollection = null)
     {
         _authCredentials = credentials;
         ServiceCollection = serviceCollection ?? new ServiceCollection();
-        _options = new HylandClientOptions();
-        optionsAction(_options);
+        _options = options;
         ServiceCollection.AddSingleton(_options);
         ServiceCollection.AddLogging(options =>
         {
@@ -54,12 +53,12 @@ public class OnBaseAppBuilder
                 LocalCacheExpiration = TimeSpan.FromMinutes(60),
             };
         });
+        ServiceCollection.AddSingleton<HylandClientFactory>();
         HylandClientFactory.RegisterBasicAuthServices(ServiceCollection, _options, _authCredentials);        
     }
-    internal static void RegisterAppServices<T>(IServiceCollection sc)
+    public static void RegisterAppServices<T>(IServiceCollection sc)
         where T : class, IOnBaseApp
-    {
-        sc.AddSingleton<HylandClientFactory>();
+    {        
         sc.AddSingleton<OnBaseAppCache>();
         sc.AddSingleton<OnBaseSessionService>();
         sc.AddSingleton<OnBaseCoreService>();
@@ -79,6 +78,6 @@ public class OnBaseAppBuilder
     /// <param name="credentials"></param>
     /// <param name="optionsAction"></param>
     /// <returns></returns>
-    public static OnBaseAppBuilder Create(IAuthenticationCredentials credentials, Action<HylandClientOptions> optionsAction)
-        => new OnBaseAppBuilder(credentials, optionsAction);
+    public static OnBaseAppBuilder Create(IAuthenticationCredentials credentials, HylandClientOptions options)
+        => new OnBaseAppBuilder(credentials, options);
 }

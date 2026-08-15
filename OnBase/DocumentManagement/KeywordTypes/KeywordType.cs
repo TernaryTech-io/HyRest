@@ -2,6 +2,7 @@
 using Ternary.DataConversions.Providers;
 using HyRest.Utilities;
 using System.Text.Json.Serialization;
+using Ternary.DataConversions.Extensions;
 
 namespace HyRest.OnBase.Core;
 
@@ -18,7 +19,7 @@ public class KeywordType : OnBaseItemTypeService<OnBaseCore, KeywordTypeModel>
     public bool UsedForRetrieval => Item.UsedForRetrieval;
     public bool Invisible => Item.Invisible;
     public AlphanumericSettings? AlphanumericSettings => Item.AlphanumericSettings;
-    [JsonIgnore]
+    public string? CurrencyFormatId => Item.CurrencyFormatId;
     public CurrencyFormat? CurrencyFormat
     {
         get
