@@ -4,13 +4,10 @@ namespace HyRest.OnBase.Administration;
 
 public class OnBaseAdministration : OnBaseModule<OnBaseAdministrationService>, IOnBaseAdministration
 {
-    public ILogger<IOnBaseAdministration> Logger => (ILogger<IOnBaseAdministration>)base.Logger;
-    public OnBaseAdministration(IOnBaseApp app, OnBaseAdministrationService service, ILogger<OnBaseAdministration> logger) : base(app, service,logger)
+    internal OnBaseAdministration(OnBaseApp app, OnBaseAdministrationService service) : base(app, service)
     {
         Users = new Users(this);
     }
     public Users Users { get; }
-    //public static OnBaseAdministration Create(IOnBaseApp app)
-    //    => new OnBaseAdministration(app);
 }
 

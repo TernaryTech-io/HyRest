@@ -48,14 +48,14 @@ public sealed class DocumentType : OnBaseItemTypeService<OnBaseCore, DocumentTyp
         get
         {
             if (_keywordTypeCollection == null)
-                PopulateKeywordTypes().Wait(Module.App.ClientOptions.RequestTimeOut);
+                PopulateKeywordTypes().Wait(Module.App.RequestTimeOut);
             return _keywordTypeCollection;
         }
     }    
     public KeywordCollection GetDefaultKeywords()
     {
         var task = GetDefaultKeywordsAsync();
-        if (task.Wait(Module.App.ClientOptions.RequestTimeOut) && task.IsCompletedSuccessfully)
+        if (task.Wait(Module.App.RequestTimeOut) && task.IsCompletedSuccessfully)
             return task.Result;
         else
             throw task.Exception?.InnerException ?? task.Exception ?? new Exception("Failed to retrieve default keywords");

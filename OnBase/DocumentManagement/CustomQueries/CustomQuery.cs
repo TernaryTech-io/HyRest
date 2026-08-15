@@ -15,7 +15,7 @@ public sealed class CustomQuery : OnBaseItemTypeService<OnBaseCore, CustomQueryM
         get
         {
             if (_keywordTypes == null || _keywordTypes.Count == 0)
-                PopulateKeywordTypes().Wait(Module.App.ClientOptions.RequestTimeOut);
+                PopulateKeywordTypes().Wait(Module.App.RequestTimeOut);
             return _keywordTypes ?? [];
         }
     }

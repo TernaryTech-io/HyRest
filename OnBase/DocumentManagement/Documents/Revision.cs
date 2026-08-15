@@ -21,7 +21,7 @@ public class Revision : OnBaseItemService<OnBaseCore, RevisionModel>
         get
         {
             if (_renditions == null)
-                PopulateRenditions().Wait(Module.App.ClientOptions.RequestTimeOut);
+                PopulateRenditions().Wait(Module.App.RequestTimeOut);
             return _renditions ?? [];
         }
     }

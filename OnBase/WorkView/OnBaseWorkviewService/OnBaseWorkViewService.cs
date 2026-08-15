@@ -5,11 +5,9 @@ namespace HyRest.OnBase.ApiServices;
 
 public partial class OnBaseWorkViewService : OnBaseService<IOnBaseWorkViewAPI>, IOnBaseWorkViewService
 {
-    private readonly ILogger<OnBaseWorkViewService> _logger;
-    public override ILogger<IOnBaseWorkViewService> Logger => _logger;
-    public OnBaseWorkViewService(IOnBaseAppCache cache, IHylandClientFactory hylandClientFactory, ILogger<OnBaseWorkViewService> logger)
-        : base(cache, hylandClientFactory)
+    public OnBaseWorkViewService(OnBaseAppCache cache, HylandClientFactory hylandClientFactory, ILogger<OnBaseWorkViewService> logger)
+        : base(cache, hylandClientFactory, logger)
     {
-        _logger = logger;
+        
     }
 }

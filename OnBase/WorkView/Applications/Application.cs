@@ -30,7 +30,7 @@ public class Application : OnBaseItemTypeService<OnBaseWorkView, ApplicationMode
         get
         {
             if (_classes.Count == 0)
-                PopulateClasses().Wait(Module.App.ClientOptions.RequestTimeOut);
+                PopulateClasses().Wait(Module.App.RequestTimeOut);
             return _classes;
         }
     }

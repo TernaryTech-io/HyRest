@@ -5,12 +5,10 @@ namespace HyRest.OnBase.ApiServices;
 
 public class OnBaseSessionService : OnBaseService<IOnBaseSessionAPI>, IOnBaseSessionService
 {
-    private readonly ILogger<OnBaseSessionService> _logger;
-    public override ILogger<IOnBaseSessionService> Logger => _logger;
-    public OnBaseSessionService(IOnBaseAppCache cache, IHylandClientFactory hylandClientFactory, ILogger<OnBaseSessionService> logger)
-        : base(cache, hylandClientFactory)
+    public OnBaseSessionService(OnBaseAppCache cache, HylandClientFactory hylandClientFactory, ILogger<OnBaseSessionService> logger)
+        : base(cache, hylandClientFactory, logger)
     {
-        _logger = logger;
+        
     }
 
     public Task InitiateSession(CancellationToken token)

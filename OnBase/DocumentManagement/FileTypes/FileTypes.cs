@@ -10,7 +10,7 @@ public sealed class FileTypes : OnBaseItemTypeCollectionService<OnBaseCore, File
     public FileType? BestGuess(string extension)
     {
         var task = BestGuessAsync(extension);
-        task.Wait(Module.App.ClientOptions.RequestTimeOut);
+        task.Wait(Module.App.RequestTimeOut);
         if (task.IsCompletedSuccessfully)
             return Module.FileTypes.Find(task.Result.Id);
         else

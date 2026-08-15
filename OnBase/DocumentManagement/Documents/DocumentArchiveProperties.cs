@@ -15,7 +15,7 @@ public class DocumentArchiveProperties : OnBaseRestService, IAsyncDisposable, ID
     {
         _model = new DocumentArchivePropertiesModel();
         SetDocumentType(documentType);    
-        GetKeywordCollectionAsync().Wait(_core.App.ClientOptions.RequestTimeOut);
+        GetKeywordCollectionAsync().Wait(_core.App.RequestTimeOut);
         _model.DocumentDate = DateTime.Now;
     }
     public FileType FileType
@@ -23,7 +23,7 @@ public class DocumentArchiveProperties : OnBaseRestService, IAsyncDisposable, ID
         get
         {
             if (_fileType == null && Files.Count > 0)
-                GetFileTypeAsync().Wait(_core.App.ClientOptions.RequestTimeOut);
+                GetFileTypeAsync().Wait(_core.App.RequestTimeOut);
             return _fileType;
         }
     }
@@ -34,6 +34,14 @@ public class DocumentArchiveProperties : OnBaseRestService, IAsyncDisposable, ID
     public string Comment { get => _model.Comment; set => _model.Comment = value; }
     public DateTime DocumentDate { get => _model.DocumentDate.DateTime; set => _model.DocumentDate = value; }
     
+    public Document? ArchiveDocument()
+    {
+        var task = ArchiveDocumentAsync();
+        task.Wait(_core.App.RequestTimeOut);
+        if (task.IsCompletedSuccessfully)
+            return task.Result;
+        return null;
+    }
     public async Task<Document?> ArchiveDocumentAsync(CancellationToken token = default)
     {
         if (FileType == null)
@@ -89,6 +97,7 @@ public class DocumentArchiveProperties : OnBaseRestService, IAsyncDisposable, ID
                 if (resp != null)
                     a.AddUploadPostResponse(resp);
             }
+            break;
         }
     }
     private async Task UploadBytesAsync(CancellationToken token = default)

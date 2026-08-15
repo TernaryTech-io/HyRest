@@ -19,7 +19,7 @@ public class Filter : OnBaseItemTypeService<OnBaseWorkView, FilterModel>
             if (_class == null)
             {
                 if (!_hydrated)
-                    GetFilterDetails().Wait(Module.App.ClientOptions.RequestTimeOut);
+                    GetFilterDetails().Wait(Module.App.RequestTimeOut);
                 _class = Module.Classes.Find(Item.ClassId);
             }
             return _class;
@@ -30,7 +30,7 @@ public class Filter : OnBaseItemTypeService<OnBaseWorkView, FilterModel>
         get
         {
             if (!_hydrated)
-                GetFilterDetails().Wait(Module.App.ClientOptions.RequestTimeOut);
+                GetFilterDetails().Wait(Module.App.RequestTimeOut);
             return _columns;
         }
     }
@@ -39,7 +39,7 @@ public class Filter : OnBaseItemTypeService<OnBaseWorkView, FilterModel>
         get
         {
             if (!_hydrated)
-                GetFilterDetails().Wait(Module.App.ClientOptions.RequestTimeOut);
+                GetFilterDetails().Wait(Module.App.RequestTimeOut);
             return _entryConstraints;
         }
     }
@@ -48,7 +48,7 @@ public class Filter : OnBaseItemTypeService<OnBaseWorkView, FilterModel>
         get
         {
             if (!_hydrated)
-                GetFilterDetails().Wait(Module.App.ClientOptions.RequestTimeOut);
+                GetFilterDetails().Wait(Module.App.RequestTimeOut);
             return _fixedConstraints;
         }
     }
@@ -57,7 +57,7 @@ public class Filter : OnBaseItemTypeService<OnBaseWorkView, FilterModel>
         get
         {
             if (!_hydrated)
-                GetFilterDetails().Wait(Module.App.ClientOptions.RequestTimeOut);
+                GetFilterDetails().Wait(Module.App.RequestTimeOut);
             return _sortAttributes;
         }
     }

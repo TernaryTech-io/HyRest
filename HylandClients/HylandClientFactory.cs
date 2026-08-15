@@ -11,9 +11,9 @@ public sealed class HylandClientFactory : IHylandClientFactory
     private IHttpClientFactory _factory;
     private readonly IHylandAuthClient _authClient;
     private readonly IHylandApiClient _apiClient;
-    private IHylandClientOptions _options;
+    private HylandClientOptions _options;
     private SessionCookieClientHandler _cookieClientHandler;
-    internal HylandClientFactory(IServiceProvider serviceProvider, IAuthenticationCredentials credentials)
+    public HylandClientFactory(IServiceProvider serviceProvider, IAuthenticationCredentials credentials)
     {
         _serviceProvider = serviceProvider;
         _factory = _serviceProvider.GetRequiredService<IHttpClientFactory>();
@@ -25,12 +25,12 @@ public sealed class HylandClientFactory : IHylandClientFactory
             .WithCookieContainer(_cookieClientHandler.CookieContainer);
         _options = _serviceProvider.GetRequiredService<HylandClientOptions>();
     }
-    internal static IServiceCollection RegisterServices(IServiceCollection services, IHylandClientOptions options, IAuthenticationCredentials credentials)
+    internal static IServiceCollection RegisterBasicAuthServices(IServiceCollection services, HylandClientOptions options, IAuthenticationCredentials credentials)
     {        
         services.AddSingleton(credentials);
         services.AddTransient(sp =>
         {
-            return options;
+            return (HylandClientOptions)options;
         });
         services.AddHttpClient<HylandBasicAuthClient>(client =>
         {

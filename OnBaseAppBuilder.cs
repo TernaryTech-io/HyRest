@@ -2,6 +2,7 @@
 using HyRest.OnBase.ApiServices;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace HyRest.OnBase;
 
@@ -39,6 +40,12 @@ public class OnBaseAppBuilder
         _options = new HylandClientOptions();
         optionsAction(_options);
         ServiceCollection.AddSingleton(_options);
+        ServiceCollection.AddLogging(options =>
+        {
+            if (Environment.UserInteractive)
+                options.AddConsole();
+            options.SetMinimumLevel(_options.LogLevel);
+        });
         ServiceCollection.AddHybridCache(options =>
         {
             options.DefaultEntryOptions = new HybridCacheEntryOptions
@@ -47,38 +54,24 @@ public class OnBaseAppBuilder
                 LocalCacheExpiration = TimeSpan.FromMinutes(60),
             };
         });
-        HylandClientFactory.RegisterServices(ServiceCollection, _options, _authCredentials);        
+        HylandClientFactory.RegisterBasicAuthServices(ServiceCollection, _options, _authCredentials);        
     }
-    public static void RegisterAppServices<T>(IServiceCollection sc)
+    internal static void RegisterAppServices<T>(IServiceCollection sc)
         where T : class, IOnBaseApp
     {
-        sc.AddSingleton<IOnBaseAppCache, OnBaseAppCache>();
+        sc.AddSingleton<HylandClientFactory>();
+        sc.AddSingleton<OnBaseAppCache>();
+        sc.AddSingleton<OnBaseSessionService>();
+        sc.AddSingleton<OnBaseCoreService>();
+        sc.AddSingleton<OnBaseWorkViewService>();
+        sc.AddSingleton<OnBaseAdministrationService>();
+
         if (typeof(T) == typeof(OnBaseApp))
-        {            
-            sc.AddSingleton<OnBaseSessionService>();
-            sc.AddSingleton<OnBaseSession>();
-            sc.AddSingleton<OnBaseCoreService>();
-            sc.AddSingleton<OnBaseCore>();
-            sc.AddSingleton<OnBaseWorkViewService>();
-            sc.AddSingleton<OnBaseWorkView>();
-            sc.AddSingleton<OnBaseAdministrationService>();
-            sc.AddSingleton<OnBaseAdministration>();
             sc.AddSingleton<OnBaseApp>();
-        }
         else
-        {
-            sc.AddScoped<OnBaseSessionService>();
-            sc.AddScoped<OnBaseSession>();
-            sc.AddScoped<OnBaseCoreService>();
-            sc.AddScoped<OnBaseCore>();
-            sc.AddScoped<OnBaseWorkViewService>();
-            sc.AddScoped<OnBaseWorkView>();
-            sc.AddScoped<OnBaseAdministrationService>();
-            sc.AddScoped<OnBaseAdministration>();
             sc.AddScoped<OnBaseScopedApp>();
-        }
-        
-        
+
+
     }
     /// <summary>
     /// Entry point for creating an OnBase App builder using standard credentials.

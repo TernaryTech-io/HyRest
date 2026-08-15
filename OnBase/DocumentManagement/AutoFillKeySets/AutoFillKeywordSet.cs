@@ -14,7 +14,7 @@ public sealed class AutoFillKeywordSet : OnBaseItemTypeService<OnBaseCore,AutoFi
         get
         {
             if (_primaryKeywordType == null)
-                PopulatePrimaryKeywordType().Wait(Module.App.ClientOptions.RequestTimeOut);
+                PopulatePrimaryKeywordType().Wait(Module.App.RequestTimeOut);
             return _primaryKeywordType;
         }
     }
@@ -24,7 +24,7 @@ public sealed class AutoFillKeywordSet : OnBaseItemTypeService<OnBaseCore,AutoFi
         get
         {
             if (_keywordTypes == null || _keywordTypes.Count == 0)
-                PopulateKeywordTypes().Wait(Module.App.ClientOptions.RequestTimeOut);
+                PopulateKeywordTypes().Wait(Module.App.RequestTimeOut);
             return _keywordTypes ?? [];
         }
     }

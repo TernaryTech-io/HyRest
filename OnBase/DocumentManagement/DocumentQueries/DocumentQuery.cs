@@ -38,7 +38,7 @@ public class DocumentQuery : OnBaseRestService
     }
     public IReadOnlyCollection<DocumentResult> GetResults()
     {
-        GetResultsAsync().Wait(Module.App.ClientOptions.RequestTimeOut);
+        GetResultsAsync().Wait(Module.App.RequestTimeOut);
         return Results;
     }
     public override string? ToJson()

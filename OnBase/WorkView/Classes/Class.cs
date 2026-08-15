@@ -22,7 +22,7 @@ public class Class : OnBaseItemTypeService<OnBaseWorkView, ClassModel>
         get
         {
             if(_attributes.Count == 0)
-                GetClassAttributes().Wait(Module.App.ClientOptions.RequestTimeOut);
+                GetClassAttributes().Wait(Module.App.RequestTimeOut);
             return _attributes.AsReadOnly();
         }
     }
@@ -31,7 +31,7 @@ public class Class : OnBaseItemTypeService<OnBaseWorkView, ClassModel>
         get
         {
             if (_accessRights == null)
-                GetAccessRights().Wait(Module.App.ClientOptions.RequestTimeOut);
+                GetAccessRights().Wait(Module.App.RequestTimeOut);
             return _accessRights;
         }
     }

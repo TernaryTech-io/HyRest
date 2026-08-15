@@ -59,7 +59,7 @@ public abstract class KeywordTypeGroup: OnBaseItemTypeService<OnBaseCore, Keywor
         get
         {
             if (StorageType != KeywordTypeGroupType.StandAlone)
-                PopulateKeywordTypes().Wait(Module.App.ClientOptions.RequestTimeOut);
+                PopulateKeywordTypes().Wait(Module.App.RequestTimeOut);
             return _keywordTypes;
         }
     }

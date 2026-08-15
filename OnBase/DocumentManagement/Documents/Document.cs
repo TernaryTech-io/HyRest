@@ -9,7 +9,7 @@ public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
     private DocumentLocks? _locks { get; set; }
     private List<Revision> _revisions { get; set; }
     private KeywordCollection? _keywordCollection { get; set; }
-    private User? _createdBy { get; set; }
+    //private User? _createdBy { get; set; }
     internal Document(OnBaseCore core, DocumentModel doc) : base(core, doc){}
     [JsonPropertyName("name")]
     public override string Name => Item.Name ?? string.Empty;
@@ -32,15 +32,16 @@ public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
             return _documentType;
         }
     }
-    public User CreatedBy
-    {
-        get
-        {
-            if (_createdBy == null)
-                GetUserInfo();
-            return _createdBy;
-        }
-    }    
+    public long CreatedByUserId => Item.CreatedByUserId.ConvertTo<long>();
+    //public User CreatedBy
+    //{
+    //    get
+    //    {
+    //        if (_createdBy == null)
+    //            GetUserInfo();
+    //        return _createdBy;
+    //    }
+    //}    
     public DateTime StoredDate { get => Item.StoredDate.ConvertTo<DateTime>(); }
     public DateTime DocumentDate { get => Item.DocumentDate.DateTime;  }
     public DocumentStatus Status => Item.Status;
@@ -51,7 +52,7 @@ public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
         get
         {
             if (_keywordCollection == null)
-                GetKeywordCollection().Wait(Module.App.ClientOptions.RequestTimeOut);
+                GetKeywordCollection().Wait(Module.App.RequestTimeOut);
             return _keywordCollection;
         }
     }
@@ -61,14 +62,14 @@ public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
         get
         {
             if (_revisions == null)
-                GetRevisions().Wait(Module.App.ClientOptions.RequestTimeOut);
+                GetRevisions().Wait(Module.App.RequestTimeOut);
             return _revisions ?? [];
         }
     }
     public DocumentHistory GetHistory(DateTimeOffset? startDate = null, DateTimeOffset? endDate = null, string? userId = null)
     {
         var task = GetHistoryAsync(startDate, endDate, userId);
-        if (task.Wait(Module.App.ClientOptions.RequestTimeOut) && task.IsCompletedSuccessfully)
+        if (task.Wait(Module.App.RequestTimeOut) && task.IsCompletedSuccessfully)
             return task.Result;
         else
             return new();
@@ -79,7 +80,7 @@ public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
     public IReadOnlyList<Note> GetNotesForRevision(string revisionId = "latest", int? page = null)
     {
         var task = GetNotesForRevisionAsync(revisionId, page);
-        if(task.Wait(Module.App.ClientOptions.RequestTimeOut) && task.IsCompletedSuccessfully)
+        if(task.Wait(Module.App.RequestTimeOut) && task.IsCompletedSuccessfully)
         {
             return task.Result;
         }
@@ -97,8 +98,7 @@ public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
         int? height = null, int? width = null, Fit? fit = null, string? accept = "*/*", string? if_Match = null, string? range = null)
     {
         var task = GetContentAsync(revisionId, fileTypeId, pages, context, height, width, fit, accept, if_Match, range);
-        
-        if (task.Wait(Module.App.ClientOptions.RequestTimeOut) && task.IsCompletedSuccessfully)
+        if (task.Wait(Module.App.RequestTimeOut) && task.IsCompletedSuccessfully)
             return task.Result;
         else
             throw task.Exception?.InnerException ?? task.Exception ?? new Exception("Failed to retrieve document content.");
@@ -109,14 +109,14 @@ public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
         var response = await Module.Service.GetDocumentContent(Item.Id, revisionId, fileTypeId, pages, context, height, width, fit, accept, if_Match, range, token);
         return new FileResponse(response);
     }
-    public void Delete() => DeleteAsync().Wait(Module.App.ClientOptions.RequestTimeOut);
+    public void Delete() => DeleteAsync().Wait(Module.App.RequestTimeOut);
     public Task DeleteAsync(CancellationToken token = default) => Module.Service.DeleteDocument(Item.Id, default);
     public void AddNote(AddNoteProperties addNoteProperties, string revisionId = "latest")
-        => AddNoteAsync(addNoteProperties, revisionId).Wait(Module.App.ClientOptions.RequestTimeOut);
+        => AddNoteAsync(addNoteProperties, revisionId).Wait(Module.App.RequestTimeOut);
     public Task AddNoteAsync(AddNoteProperties addNoteProperties, string revisionId = "latest", CancellationToken token = default)
         => Module.Service.PostNoteOnDocument(Item.Id, addNoteProperties, revisionId, token);
     public void UpdateKeywords()
-        => UpdateKeywordsAsync().Wait(Module.App.ClientOptions.RequestTimeOut);
+        => UpdateKeywordsAsync().Wait(Module.App.RequestTimeOut);
     public async Task UpdateKeywordsAsync(CancellationToken token = default)
     {
         await Module.Service.PutKeywordsForDocument(Id.ToString(), KeywordCollection.GetModel(), token);
@@ -124,7 +124,7 @@ public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
     }
     public DocumentReindexProperties CreateDocumentReindexProperties()
         => new DocumentReindexProperties(Module, this);
-    public void UpdateDocumentDate(DateTime documentDate) => UpdateDocumentDateAsync(documentDate).Wait(Module.App.ClientOptions.RequestTimeOut);
+    public void UpdateDocumentDate(DateTime documentDate) => UpdateDocumentDateAsync(documentDate).Wait(Module.App.RequestTimeOut);
     public Task UpdateDocumentDateAsync(DateTime documentDate, CancellationToken token = default) 
         => Module.Service.PatchDocumentDate(Item.Id, new DocumentPatchRequestModel { DocumentDate = documentDate},token);
     //public async Task<Document> ReindexAsync(DocumentReindexProperties props)
@@ -155,10 +155,10 @@ public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
     }
     public override string? ToJson()
         => JsonUtility.Serialize(this);
-    private void GetUserInfo()
-    {
-        var admin = (OnBaseAdministration)Module.App.Administration;
-        if(Item.CreatedByUserId != null)
-            _createdBy = admin.Users.Find(Item.CreatedByUserId);
-    }
+    //private void GetUserInfo()
+    //{
+    //    var admin = (OnBaseAdministration)Module.App.Administration;
+    //    if(Item.CreatedByUserId != null)
+    //        _createdBy = admin.Users.Find(Item.CreatedByUserId);
+    //}
 }

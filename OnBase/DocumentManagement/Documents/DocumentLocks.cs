@@ -10,11 +10,11 @@ public sealed class DocumentLocks : OnBaseBaseCollectionService<OnBaseCore, Docu
         _doc = doc;
     }
     public void CreateDocumentLock(LockType lockType)
-        => CreateDocumentLockAsync(lockType).Wait(Module.App.ClientOptions.RequestTimeOut);
+        => CreateDocumentLockAsync(lockType).Wait(Module.App.RequestTimeOut);
     public Task CreateDocumentLockAsync(LockType lockType, CancellationToken token = default)
         => Module.Service.CreateDocumentLock(_doc.Id, lockType, token);
     public void DeleteDocumentLock(LockType lockType)
-        => DeleteDocumentLockAsync(lockType).Wait(Module.App.ClientOptions.RequestTimeOut);
+        => DeleteDocumentLockAsync(lockType).Wait(Module.App.RequestTimeOut);
     public Task DeleteDocumentLockAsync(LockType lockType, CancellationToken token = default)
         => Module.Service.DeleteDocumentLock(_doc.Id, lockType, token);
     public async Task GetLocks(CancellationToken token = default)

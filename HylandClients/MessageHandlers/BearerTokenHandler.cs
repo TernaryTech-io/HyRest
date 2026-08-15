@@ -8,8 +8,8 @@ namespace HyRest.Identity;
 public sealed class BearerTokenHandler : DelegatingHandler
 {
     private readonly IHylandAuthClient _authClient;
-    private readonly IHylandClientOptions _options;
-    public BearerTokenHandler(HylandBasicAuthClient authClient, IAuthenticationCredentials creds, IHylandClientOptions options)
+    private readonly HylandClientOptions _options;
+    public BearerTokenHandler(HylandBasicAuthClient authClient, IAuthenticationCredentials creds, HylandClientOptions options)
         : base()
     {
         _authClient = authClient.WithCredentials(creds);

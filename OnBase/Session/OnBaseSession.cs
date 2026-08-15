@@ -8,8 +8,7 @@ namespace HyRest.OnBase.Session;
 public sealed partial class OnBaseSession : OnBaseModule<OnBaseSessionService>, IOnBaseSession
 {
     private readonly HylandApiClient _apiClient;
-    public new ILogger<IOnBaseSession> Logger => (ILogger<IOnBaseSession>)base.Logger;
-    internal OnBaseSession(IOnBaseApp app, OnBaseSessionService service, ILogger<OnBaseSession> logger) : base(app, service, logger)
+    internal OnBaseSession(OnBaseApp app, OnBaseSessionService service) : base(app, service)
     {
         _apiClient = (HylandApiClient)app.ClientFactory.ApiClient;
     }
@@ -25,7 +24,7 @@ public sealed partial class OnBaseSession : OnBaseModule<OnBaseSessionService>, 
     /// a lightweight endpoint. Call this right after creating the client to ensure
     /// the session is established before any document operations begin.
     /// </summary>
-    public void Initiate() => InitiateAsync().Wait(App.ClientOptions.RequestTimeOut);
+    public void Initiate() => InitiateAsync().Wait(App.RequestTimeOut);
 
     /// <summary>
     /// Refreshes the session cookie, extending the session lifetime by 5 minutes.
@@ -36,7 +35,7 @@ public sealed partial class OnBaseSession : OnBaseModule<OnBaseSessionService>, 
     /// Refreshes the session cookie, extending the session lifetime by 5 minutes.
     /// Call this every 4–5 minutes while idle to prevent the OnBase session from expiring.
     /// </summary>
-    public void Heatbeat() => HeartbeatAsync().Wait(App.ClientOptions.RequestTimeOut);
+    public void Heatbeat() => HeartbeatAsync().Wait(App.RequestTimeOut);
 
     /// <summary>
     /// Closes the OnBase session and releases the consumed license.
@@ -48,7 +47,7 @@ public sealed partial class OnBaseSession : OnBaseModule<OnBaseSessionService>, 
     /// Closes the OnBase session and releases the consumed license.
     /// Always disconnect when finished to avoid holding licenses unnecessarily.
     /// </summary>
-    public void Disconnect() => DisconnectAsync().Wait(App.ClientOptions.RequestTimeOut);
+    public void Disconnect() => DisconnectAsync().Wait(App.RequestTimeOut);
 
     /// <summary>
     /// Returns the Session Cookie containing the Session Id value and Expiration date.

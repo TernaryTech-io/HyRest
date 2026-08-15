@@ -9,10 +9,10 @@ public sealed class DocumentLock : OnBaseBaseService<OnBaseCore, LockInfoModel>
     {
         _doc = doc;
     }
-    public void DeleteLock() => DeleteLockAsync().Wait(Module.App.ClientOptions.RequestTimeOut);
+    public void DeleteLock() => DeleteLockAsync().Wait(Module.App.RequestTimeOut);
     public Task DeleteLockAsync(CancellationToken token = default) 
         => Module.Service.DeleteDocumentLock(_doc.Id, Item.LockType, token);
-    public void CreateLock(LockType lockType) => CreateLockAsync(lockType).Wait(Module.App.ClientOptions.RequestTimeOut);
+    public void CreateLock(LockType lockType) => CreateLockAsync(lockType).Wait(Module.App.RequestTimeOut);
     public Task CreateLockAsync(LockType lockType, CancellationToken token = default)
         => Module.Service.CreateDocumentLock(_doc.Id, lockType, token);
     public override string? ToJson()

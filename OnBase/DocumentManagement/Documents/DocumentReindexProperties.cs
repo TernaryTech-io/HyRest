@@ -23,7 +23,7 @@ public sealed class DocumentReindexProperties : OnBaseRestService
     /// <summary>
     /// The document type to be reindexed into.
     /// </summary>
-    public DocumentType TargetDocumentType { get => _docType; set => SetDocumentTypeAsync(value).Wait(Module.App.ClientOptions.RequestTimeOut); }
+    public DocumentType TargetDocumentType { get => _docType; set => SetDocumentTypeAsync(value).Wait(Module.App.RequestTimeOut); }
     private async Task SetDocumentTypeAsync(DocumentType value)
     {
         _docType = value;

@@ -16,7 +16,7 @@ public sealed class SessionCookieClientHandler : HttpClientHandler
         this.CookieContainer = new System.Net.CookieContainer();
         options.Value.OptionsAction(_options);
     }
-    internal SessionCookieClientHandler(IHylandClientOptions options) : base()
+    internal SessionCookieClientHandler(HylandClientOptions options) : base()
     {
         this.UseCookies = true;
         this.AllowAutoRedirect = true;

@@ -179,7 +179,7 @@ public abstract class DocumentQueryBuilder<TItem, TQuery> : DocumentQueryBuilder
     {
         var dqTask = CreateQueryAsync(includeItemCount);
         
-        if (dqTask.Wait(_core.App.ClientOptions.RequestTimeOut) && dqTask.IsCompletedSuccessfully)
+        if (dqTask.Wait(_core.App.RequestTimeOut) && dqTask.IsCompletedSuccessfully)
             return dqTask.Result;
         else throw dqTask.Exception ?? new Exception("Failed to intiate document query.");
     }

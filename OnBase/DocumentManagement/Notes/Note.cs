@@ -24,16 +24,16 @@ public class Note : OnBaseItemService<OnBaseCore, NoteModel>
     }
     public string Text => Item.Text ?? string.Empty;
     public string CreatedByUserId => Item.CreatedUserId ?? string.Empty;
-    [JsonIgnore]
-    public User CreatedByUser
-    {
-        get
-        {
-            if (_createdByUser == null)
-                GetCreatedByUser();
-            return _createdByUser;
-        }
-    }
+    //[JsonIgnore]
+    //public User CreatedByUser
+    //{
+    //    get
+    //    {
+    //        if (_createdByUser == null)
+    //            GetCreatedByUser();
+    //        return _createdByUser;
+    //    }
+    //}
     public DateTime Created => Item.Created.ConvertTo<DateTime>();
     public long DocumentId => Item.DocumentId.ConvertTo<long>();
     public long DocumentRevisionId => Item.DocumentRevisionId.ConvertTo<long>();

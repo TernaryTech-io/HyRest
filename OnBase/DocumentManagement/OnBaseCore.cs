@@ -1,5 +1,4 @@
 using HyRest.OnBase.ApiServices;
-using Microsoft.Extensions.Logging;
 
 namespace HyRest.OnBase.Core;
 
@@ -8,7 +7,6 @@ namespace HyRest.OnBase.Core;
 /// </summary>
 public sealed partial class OnBaseCore : OnBaseModule<OnBaseCoreService>, IOnBaseCore
 {
-    public new ILogger<IOnBaseCore> Logger => (ILogger<IOnBaseCore>)base.Logger;
     public AutoFillKeywordSets AutoFillKeywordSets { get; }
     public CustomQueries CustomQueries { get; set; }
     public CurrencyFormats CurrencyFormats { get; set; }
@@ -18,8 +16,8 @@ public sealed partial class OnBaseCore : OnBaseModule<OnBaseCoreService>, IOnBas
     public KeywordTypeGroups KeywordTypeGroups { get; }
     public KeywordTypes KeywordTypes { get; }
     public NoteTypes NoteTypes { get; }
-    public OnBaseCore(IOnBaseApp app, OnBaseCoreService service, ILogger<OnBaseCore> logger) 
-        : base(app, service, logger)
+    internal OnBaseCore(OnBaseApp app, OnBaseCoreService service) 
+        : base(app, service)
     {       
         AutoFillKeywordSets = new AutoFillKeywordSets(this);
         CustomQueries = new CustomQueries(this);
@@ -38,7 +36,7 @@ public sealed partial class OnBaseCore : OnBaseModule<OnBaseCoreService>, IOnBas
     public Document? GetDocumentById(string id)
     {
         var docTask = GetDocumentByIdAsync(id);
-        if (docTask.Wait(App.ClientOptions.RequestTimeOut) && docTask.IsCompletedSuccessfully)
+        if (docTask.Wait(App.RequestTimeOut) && docTask.IsCompletedSuccessfully)
             return docTask.Result;
         else
             return null;

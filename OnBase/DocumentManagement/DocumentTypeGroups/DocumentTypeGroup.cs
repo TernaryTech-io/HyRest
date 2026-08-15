@@ -15,7 +15,7 @@ public sealed class DocumentTypeGroup : OnBaseItemTypeService<OnBaseCore, Docume
         get
         {
             if(_documentTypes == null)
-                PopulateDocumentTypes().Wait(Module.App.ClientOptions.RequestTimeOut);
+                PopulateDocumentTypes().Wait(Module.App.RequestTimeOut);
             return _documentTypes;
         }
     }

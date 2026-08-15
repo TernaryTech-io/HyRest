@@ -11,7 +11,7 @@ public class User : OnBaseItemTypeService<OnBaseAdministration, UserModel>
         get
         {
             if (Item.Name == null)
-                GetDetailedModel().Wait(Module.App.ClientOptions.RequestTimeOut);
+                GetDetailedModel().Wait(Module.App.RequestTimeOut);
             return Item.Name;
         }
     }
@@ -20,7 +20,7 @@ public class User : OnBaseItemTypeService<OnBaseAdministration, UserModel>
         get
         {
             if (Item.RealName == null)
-                GetDetailedModel().Wait(Module.App.ClientOptions.RequestTimeOut);
+                GetDetailedModel().Wait(Module.App.RequestTimeOut);
             return Item.RealName;
         }
     }
@@ -29,7 +29,7 @@ public class User : OnBaseItemTypeService<OnBaseAdministration, UserModel>
         get
         {
             if (Item.EmailAddress == null)
-                GetDetailedModel().Wait(Module.App.ClientOptions.RequestTimeOut);
+                GetDetailedModel().Wait(Module.App.RequestTimeOut);
             return Item.EmailAddress;
         }
     }
