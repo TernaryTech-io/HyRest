@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using Ternary.DataConversions.Providers;
 using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public struct KeywordDataType : IEquatable<KeywordDataType>
 {

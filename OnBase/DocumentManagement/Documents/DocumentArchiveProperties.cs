@@ -1,6 +1,6 @@
 ﻿using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public class DocumentArchiveProperties : OnBaseRestService, IAsyncDisposable, IDisposable
 {
@@ -49,19 +49,14 @@ public class DocumentArchiveProperties : OnBaseRestService, IAsyncDisposable, ID
         {
             await Parallel.ForEachAsync(Files, async (file, ct) =>
             {
-                await _core.Run(_core.Api.DeleteFileUploadById(file.Id));
+                await _core.Service.DeleteFileUpload(file.Id);
             });
         }
     }
     public void Dispose()
     {
         if (_deleteOnDispose)
-        {
-            Parallel.ForEach(Files, (file) =>
-            {
-                _core.Run(_core.Api.DeleteFileUploadById(file.Id)).Wait(_core.App.ClientOptions.RequestTimeOut);
-            });
-        }
+            DisposeAsync();
     }
     internal async Task GetKeywordCollectionAsync(CancellationToken token = default)
     {
@@ -90,7 +85,7 @@ public class DocumentArchiveProperties : OnBaseRestService, IAsyncDisposable, ID
             foreach (var a in Files)
             {
                 var reqBody = a.CreateUploadRequest();
-                var resp = await _core.Run(_core.Api.PostFileUploadMetadata(reqBody), token);
+                var resp = await _core.Service.PostFileUpLoad(reqBody, token);
                 if (resp != null)
                     a.AddUploadPostResponse(resp);
             }
@@ -111,7 +106,7 @@ public class DocumentArchiveProperties : OnBaseRestService, IAsyncDisposable, ID
                     partNo++;
                     var partSize = chunk.Length;
                     var binaryContent = new ByteArrayContent(chunk);
-                    await _core.Run(_core.Api.PutFileUploadById(a.Id, partNo, binaryContent), token);
+                    await _core.Service.PutFileUpLoad(a.Id, partNo, binaryContent, token);
                     partSuccess++;
                 }
                 if (partSuccess == chunks.Count())
@@ -137,7 +132,7 @@ public class DocumentArchiveProperties : OnBaseRestService, IAsyncDisposable, ID
     {
         _model.KeywordCollection = KeywordCollection.GetModel();
         _model.Uploads = Files.Select(f => new UploadModel { Id = f.Id }).ToList();
-        var resp = await _core.Run(_core.Api.PostDocument(_model), token);
+        var resp = await _core.Service.PostDocument(_model, token);
         if (resp != null)
             _documentId = resp.Id;
     }

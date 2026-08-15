@@ -1,6 +1,6 @@
 ﻿using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 public sealed class FileTypes : OnBaseItemTypeCollectionService<OnBaseCore, FileType>
 {
     internal FileTypes(OnBaseCore core) : base(core)
@@ -18,23 +18,26 @@ public sealed class FileTypes : OnBaseItemTypeCollectionService<OnBaseCore, File
     }
     public async Task<FileType?> BestGuessAsync(string extension, CancellationToken token = default)
     {
-        var model = await Module.Run(Module.Api.GetFileTypeForUpload(extension, Options.DefaultLanguage),token);
+        var model = await Module.Service.GetBestGuessFileType(extension, token);
+        if (model != null)
+            return Module.FileTypes[model.Id];
+        return null;
+    }
+    protected override async Task GetCollection(CancellationToken token = default)
+    {
+        var col = await Module.Service.GetFileTypes(token);
+        col?.Items
+                .Select(i => new FileType(Module, i))
+                .ToList()
+                .ForEach(i => Add(i));
+    }
+    protected override async Task<FileType?> GetOne(string id, CancellationToken token = default)
+    {
+        var model = await Module.Service.GetFileType(id, token);
         if (model != null)
             return new FileType(Module, model);
         return null;
     }
-    protected override async Task GetCollection(CancellationToken token)
-    {
-        var col = await Module.Run(Module.Api.GetFileTypeCollection(null, null, Options.DefaultLanguage));
-        if (col != null)
-        {
-            col.Items
-                .Select(i => new FileType(Module, i))
-                .ToList()
-                .ForEach(i => Add(i));
-        }
-        base.GetCollection(token);
-    }    
     public override string? ToJson()
         => JsonUtility.Serialize(this);
 }

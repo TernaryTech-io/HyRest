@@ -1,16 +1,16 @@
-﻿using HyRest.Cache;
-using Refit;
+﻿using Microsoft.Extensions.Logging;
 
-namespace HyRest.Administration;
+namespace HyRest.OnBase.Administration;
 
-public class OnBaseAdministration : OnBaseModule<IOnBaseAdministrationAPI>, IOnBaseAdministration
+public class OnBaseAdministration : OnBaseModule<OnBaseAdministrationService>, IOnBaseAdministration
 {
-    internal OnBaseAdministration(IOnBaseApp app) : base(app)
+    public ILogger<IOnBaseAdministration> Logger => (ILogger<IOnBaseAdministration>)base.Logger;
+    public OnBaseAdministration(IOnBaseApp app, OnBaseAdministrationService service, ILogger<OnBaseAdministration> logger) : base(app, service,logger)
     {
         Users = new Users(this);
     }
     public Users Users { get; }
-    public static OnBaseAdministration Create(IOnBaseApp app)
-        => new OnBaseAdministration(app);
+    //public static OnBaseAdministration Create(IOnBaseApp app)
+    //    => new OnBaseAdministration(app);
 }
 

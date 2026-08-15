@@ -1,8 +1,7 @@
 ﻿using HyRest.Utilities;
-using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 public sealed class CustomQuery : OnBaseItemTypeService<OnBaseCore, CustomQueryModel>
 {
     private List<KeywordType> _keywordTypes { get; set; } = [];
@@ -24,15 +23,12 @@ public sealed class CustomQuery : OnBaseItemTypeService<OnBaseCore, CustomQueryM
     {
         if (Item.Id != null)
         {
-            var col = await Module.Run(Module.Api.GetKeywordTypeCollectionForCustomQuery(Item.Id));
-            if (col != null)
-                col.Items
+            var col = await Module.Service.GetKeywordsForCustomQuery(Item.Id);
+            col?.Items
                 .Select(i => Module.KeywordTypes[i.Id])
                 .ToList()
                 .ForEach(i => _keywordTypes.Add(i));
         }
-        else throw new Exception("The custom query id is missing.");
-        
     }
     public override string? ToJson()
         => JsonUtility.Serialize(this);

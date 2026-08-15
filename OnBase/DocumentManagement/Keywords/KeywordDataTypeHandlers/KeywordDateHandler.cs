@@ -1,4 +1,4 @@
-﻿namespace HyRest.DocumentManagement;
+﻿namespace HyRest.OnBase.Core;
 
 public class KeywordDateProvider : KeywordDataTypeProvider
 {

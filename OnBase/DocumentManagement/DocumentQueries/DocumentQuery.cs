@@ -1,6 +1,6 @@
 ﻿using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public class DocumentQuery : OnBaseRestService
 {
@@ -27,9 +27,9 @@ public class DocumentQuery : OnBaseRestService
     /// Execute the query asynchronously and return a collection of results. 
     /// </summary>
     /// <returns></returns>
-    public async Task<IReadOnlyCollection<DocumentResult>> GetResultsAsync()
+    public async Task<IReadOnlyCollection<DocumentResult>> GetResultsAsync(CancellationToken token = default)
     {
-        var resp = await _core.Run(_core.Api.GetResultCollectionForDocumentQuery(_queryId));
+        var resp = await _core.Service.GetQueryResults(_queryId, token);
         if(resp != null)
         {
             _results = resp.Items.Select(r => new DocumentResult(_core, r)).ToList();

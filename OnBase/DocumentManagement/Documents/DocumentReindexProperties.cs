@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public sealed class DocumentReindexProperties : OnBaseRestService
 {

@@ -1,10 +1,8 @@
-
-
 using System.Text.Json.Serialization;
 using Ternary.DataConversions.Providers;
 using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 public class Keyword : OnBaseItemService<OnBaseCore, KeywordModel>, IKeyword
 {
     protected IDataTypeConversionProvider _handler => KeywordType.CreateKeywordDataTypeHandler();
@@ -39,22 +37,13 @@ public class Keyword : OnBaseItemService<OnBaseCore, KeywordModel>, IKeyword
     {
         get
         {
-            if (_keyType == null)
-                PopulateKeywordType().Wait(Module.App.ClientOptions.RequestTimeOut);
+            if (_keyType == null && Item.Id != null)
+                _keyType = Module.KeywordTypes[Item.Id];
             return _keyType;            
         }
     }    
-    internal KeywordModel GetModel()
-     => Item;
-    private async Task PopulateKeywordType()
-    { 
-        if(Item.Id != null)
-        {
-            var item = await Module.Run(Module.Api.GetKeywordTypeById(Item.Id, Options.DefaultLanguage));
-            if (item != null)
-                _keyType = new KeywordType(Module, item);
-        }
-    }
+    internal KeywordModel GetModel() => Item;
+
     public override string? ToJson()
         => JsonUtility.Serialize(this);
 }

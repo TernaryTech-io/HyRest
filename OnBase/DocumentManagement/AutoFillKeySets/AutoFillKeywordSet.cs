@@ -1,7 +1,7 @@
 ﻿using HyRest.Utilities;
 using System.Text.Json.Serialization;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public sealed class AutoFillKeywordSet : OnBaseItemTypeService<OnBaseCore,AutoFillKeywordSetModel>
 {
@@ -33,16 +33,15 @@ public sealed class AutoFillKeywordSet : OnBaseItemTypeService<OnBaseCore,AutoFi
     {
         if(Item.PrimaryKeywordTypeId != null)
         {
-            var item = await Module.Run(Module.Api.GetKeywordTypeById(Item.PrimaryKeywordTypeId, Options.DefaultLanguage));
+            var item = await Module.Service.GetKeywordType(Item.PrimaryKeywordTypeId);
             if (item != null)
                 _primaryKeywordType = new KeywordType(Module, item);
         }        
     }
     private async Task PopulateKeywordTypes()
     {
-        var col = await Module.Run(Module.Api.GetKeywordTypeCollectionForAutofillKeywordSet(Item.Id));
-        if(col != null)
-            col.Items
+        var col = await Module.Service.GetAutoFillKeywordSetKeywordTypes(Item.Id);
+        col?.Items
             .Select(i => new KeywordType(Module, i))
             .ToList()
             .ForEach(i => _keywordTypes.Add(i));

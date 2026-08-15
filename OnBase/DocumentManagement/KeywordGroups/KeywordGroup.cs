@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Text.Json.Serialization;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 
 public abstract class EditableKeywordGroup : KeywordGroup, IModifiableKeywordRecord

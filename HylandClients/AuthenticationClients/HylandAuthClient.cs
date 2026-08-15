@@ -1,5 +1,4 @@
 ﻿using Duende.IdentityModel.Client;
-using HyRest.Identity.Credentials;
 using System.Reflection;
 
 namespace HyRest;

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace HyRest.Identity.Credentials;
+namespace HyRest;
 
 /// <summary>
 /// Basic Authentication requiring a username, password and Client Id & Secret.

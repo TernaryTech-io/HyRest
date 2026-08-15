@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public class QueryKeyword : OnBaseRestService
 {

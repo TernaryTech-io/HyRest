@@ -1,7 +1,7 @@
 ﻿using HyRest.Utilities;
 using System.Text.Json.Serialization;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public class StandAloneKeywordTypes : KeywordTypeGroup
 {
@@ -67,7 +67,7 @@ public abstract class KeywordTypeGroup: OnBaseItemTypeService<OnBaseCore, Keywor
 
     private async Task PopulateKeywordTypes()
     {
-        var col = await Module.Run(Module.Api.GetKeywordTypeCollectionForKeywordTypeGroup(Item.Id));
+        var col = await Module.Service.GetKeywordTypesForKeywordTypeGroup(Item.Id);
         if (col != null)
             col.Items
             .Select(i => Module.KeywordTypes.Find(i.Id))

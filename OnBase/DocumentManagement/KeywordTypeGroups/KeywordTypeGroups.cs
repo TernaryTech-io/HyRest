@@ -1,8 +1,6 @@
-﻿
+﻿using HyRest.Utilities;
 
-using HyRest.Utilities;
-
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public class KeywordTypeGroups : OnBaseItemTypeCollectionService< OnBaseCore, KeywordTypeGroup>
 {    
@@ -10,12 +8,11 @@ public class KeywordTypeGroups : OnBaseItemTypeCollectionService< OnBaseCore, Ke
     {
         
     }
+
     protected override async Task GetCollection(CancellationToken token = default)
     {
-        var col = await Module.Run(Module.Api.GetKeywordTypeGroupCollection(null, null, Options.DefaultLanguage), token);
-        if (col != null)
-        {
-            col.Items
+        var col = await Module.Service.GetKeywordTypeGroups(token);
+        col?.Items
                 .ToList()
                 .ForEach(i =>
                 {
@@ -24,9 +21,19 @@ public class KeywordTypeGroups : OnBaseItemTypeCollectionService< OnBaseCore, Ke
                     else if (i.StorageType == KeywordTypeGroupStorageType.SingleInstance)
                         Add(new SingleInstanceKeywordTypeGroup(Module, i));
                 });
-        }
-        base.GetCollection(token);
     }
+    protected override async Task<KeywordTypeGroup?> GetOne(string id, CancellationToken token = default)
+    {
+        var i = await Module.Service.GetKeywordTypeGroup(id, token);
+        if (i != null)
+        {
+            if (i.StorageType == KeywordTypeGroupStorageType.MultiInstance)
+                Add(new MultiInstanceKeywordTypeGroup(Module, i));
+            else if (i.StorageType == KeywordTypeGroupStorageType.SingleInstance)
+                Add(new SingleInstanceKeywordTypeGroup(Module, i));
+        }
+        return null;
+    }    
     public override string? ToJson()
         => JsonUtility.Serialize(this);
 }

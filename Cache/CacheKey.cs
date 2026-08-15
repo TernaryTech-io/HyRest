@@ -10,7 +10,7 @@ public struct CacheKey
         return $"{Prefix ?? Prefix + "-"}{TypeOf}-{IdOf}";
     }
     public static CacheKey Create<T>(T item, string? prefix = null)
-        where T : class, IOnBaseIdentifiable
+        where T : class, IOnBaseCacheable
     {
         return new CacheKey
         {

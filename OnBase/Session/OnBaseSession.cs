@@ -1,13 +1,15 @@
+using HyRest.OnBase.ApiServices;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 
 
-namespace HyRest.Session;
+namespace HyRest.OnBase.Session;
 
-public sealed partial class OnBaseSession : OnBaseModule<IOnBaseSessionAPI>, IOnBaseSession
+public sealed partial class OnBaseSession : OnBaseModule<OnBaseSessionService>, IOnBaseSession
 {
     private readonly HylandApiClient _apiClient;
-    internal OnBaseSession(IOnBaseApp app) : base(app)
+    public new ILogger<IOnBaseSession> Logger => (ILogger<IOnBaseSession>)base.Logger;
+    internal OnBaseSession(IOnBaseApp app, OnBaseSessionService service, ILogger<OnBaseSession> logger) : base(app, service, logger)
     {
         _apiClient = (HylandApiClient)app.ClientFactory.ApiClient;
     }
@@ -16,7 +18,7 @@ public sealed partial class OnBaseSession : OnBaseModule<IOnBaseSessionAPI>, IOn
     /// a lightweight endpoint. Call this right after creating the client to ensure
     /// the session is established before any document operations begin.
     /// </summary>
-    public Task InitiateAsync(CancellationToken token = default) => Run(Api.InitiateSessionAsync(), token);
+    public Task InitiateAsync(CancellationToken token = default) => Service.InitiateSession(token);
 
     /// <summary>
     /// Initiates the OnBase session and captures the session cookie by calling
@@ -29,7 +31,7 @@ public sealed partial class OnBaseSession : OnBaseModule<IOnBaseSessionAPI>, IOn
     /// Refreshes the session cookie, extending the session lifetime by 5 minutes.
     /// Call this every 4–5 minutes while idle to prevent the OnBase session from expiring.
     /// </summary>
-    public Task HeartbeatAsync(CancellationToken token = default) => Run(Api.HeartbeatAsync(), token);
+    public Task HeartbeatAsync(CancellationToken token = default) => Service.HeartBeat(token);
     /// <summary>
     /// Refreshes the session cookie, extending the session lifetime by 5 minutes.
     /// Call this every 4–5 minutes while idle to prevent the OnBase session from expiring.
@@ -40,7 +42,7 @@ public sealed partial class OnBaseSession : OnBaseModule<IOnBaseSessionAPI>, IOn
     /// Closes the OnBase session and releases the consumed license.
     /// Always disconnect when finished to avoid holding licenses unnecessarily.
     /// </summary>
-    public Task DisconnectAsync(CancellationToken token = default) => Run(Api.DisconnectAsync(), token);
+    public Task DisconnectAsync(CancellationToken token = default) => Service.Disconnect(token);
 
     /// <summary>
     /// Closes the OnBase session and releases the consumed license.
@@ -55,8 +57,5 @@ public sealed partial class OnBaseSession : OnBaseModule<IOnBaseSessionAPI>, IOn
     /// <summary>
     /// Checks for a Session Cookie and if the Session is expired.
     /// </summary>
-    public bool IsActive => _apiClient.IsActive;
-
-    internal static OnBaseSession Create(IOnBaseApp app)
-        => new OnBaseSession(app);    
+    public bool IsActive => _apiClient.IsActive;    
 }

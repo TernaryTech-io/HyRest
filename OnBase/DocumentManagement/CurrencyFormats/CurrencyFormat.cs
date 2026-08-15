@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public sealed class CurrencyFormat : OnBaseItemTypeService<OnBaseCore, CurrencyFormatModel>
 {
@@ -13,9 +13,9 @@ public sealed class CurrencyFormat : OnBaseItemTypeService<OnBaseCore, CurrencyF
     }
     public string CurrencySymbol => Item.CurrencySymbol ?? string.Empty;
     public long DecimalPlaces => Item.DecimalPlaces;
-    public string DecimalSymbol => DecimalSymbol ?? string.Empty;
+    public string DecimalSymbol => Item.DecimalSymbol ?? string.Empty;
     public long GroupingDigitas => Item.GroupingDigits;
-    public string IsoCurrencyName => Item.IsoCurrencyName ?? string.Empty;
+    public string IsoCurrencyName => Item.SystemName ?? string.Empty;
     public bool HasCurrencySymbol => Item.HasCurrencySymbol;
     public bool HasGroupSeparator => Item.HasGroupSeparator;
     public bool HasLeadingZero => Item.HasLeadingZero;
@@ -25,15 +25,15 @@ public sealed class CurrencyFormat : OnBaseItemTypeService<OnBaseCore, CurrencyF
     public bool IsMinusSignAfter => Item.IsMinusSignAfter;
     public bool IsSymbolAfter => Item.IsSymbolAfter;
     public bool IsSymbolAfterOnNegative => Item.IsSymbolAfterOnNegative;
-    public bool IsSymbolInsideNegative => IsSymbolInsideNegative;
+    public bool IsSymbolInsideNegative => Item.IsSymbolInsideNegative;
 
     private static CultureInfo CreateCultureFromCurrencyFormat(CurrencyFormatModel Item)
     {
-        if(Item.IsoCurrencyName != null)
+        if(Item.SystemName != null)
         {
             foreach(var c in CultureInfo.GetCultures(CultureTypes.AllCultures))
             {
-                if (c.ThreeLetterISOLanguageName == Item.IsoCurrencyName)
+                if (c.ThreeLetterISOLanguageName == Item.SystemName)
                     return c;
             }
         }

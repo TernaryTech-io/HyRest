@@ -1,6 +1,4 @@
-﻿using HyRest.Identity.Credentials;
-
-namespace HyRest;
+﻿namespace HyRest;
 
 public class HylandBasicAuthClient : HylandAuthClient
 {

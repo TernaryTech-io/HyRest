@@ -1,4 +1,4 @@
-﻿using HyRest.Identity.Credentials;
+﻿
 namespace HyRest;
 
 public class HylandOpenIdClientOptionsBuilder

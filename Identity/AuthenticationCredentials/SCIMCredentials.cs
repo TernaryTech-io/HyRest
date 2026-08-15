@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace HyRest.Identity.Credentials;
+namespace HyRest;
 public class SCIMCredentials : AuthenticationCredentials
 {
     [DefaultValue("client_credentials")]

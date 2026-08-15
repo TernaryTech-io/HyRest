@@ -1,16 +1,13 @@
 using System.Text.Json.Serialization;
 using Ternary.DataConversions.Extensions;
 using HyRest.Utilities;
-using HyRest.Administration;
-using System.Collections.ObjectModel;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
 {
     private DocumentType? _documentType { get; set; }
     private DocumentLocks? _locks { get; set; }
     private List<Revision> _revisions { get; set; }
-    private List<Note> _notes { get; set; }
     private KeywordCollection? _keywordCollection { get; set; }
     private User? _createdBy { get; set; }
     internal Document(OnBaseCore core, DocumentModel doc) : base(core, doc){}
@@ -30,19 +27,9 @@ public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
     {
         get
         {
-            if (_documentType == null)
-                GetDocumentType();
+            if (_documentType == null && Item.TypeId != null)
+                _documentType = Module.DocumentTypes[Item.TypeId];
             return _documentType;
-        }
-    }
-    [JsonIgnore]
-    public IReadOnlyList<Note> Notes
-    {
-        get
-        {
-            if (_notes == null)
-                GetNoteCollection().Wait(Module.App.ClientOptions.RequestTimeOut);
-            return _notes ?? [];
         }
     }
     public User CreatedBy
@@ -87,9 +74,9 @@ public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
             return new();
     }
     public Task<DocumentHistory?> GetHistoryAsync(DateTimeOffset? startDate = null, DateTimeOffset? endDate = null, string? userId = null, CancellationToken token = default)
-        => Module.Run(Module.Api.History(Item.Id, startDate, endDate, userId), token);
+        => Module.Service.GetDocumentHistory(Item.Id, startDate, endDate, userId, token);
 
-    public IReadOnlyList<Note> GetNotesForRevision(string revisionId, int? page)
+    public IReadOnlyList<Note> GetNotesForRevision(string revisionId = "latest", int? page = null)
     {
         var task = GetNotesForRevisionAsync(revisionId, page);
         if(task.Wait(Module.App.ClientOptions.RequestTimeOut) && task.IsCompletedSuccessfully)
@@ -98,12 +85,11 @@ public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
         }
         return [];
     }
-    public async Task<IReadOnlyList<Note>> GetNotesForRevisionAsync(string revisionId, int? page, CancellationToken token = default)
+    public async Task<IReadOnlyList<Note>> GetNotesForRevisionAsync(string revisionId = "latest", int? page = null, CancellationToken token = default)
     {
         List<Note> notes = [];
-        var col = await Module.Run(Module.Api.GetNoteCollectionForDocument(Item.Id, revisionId, page), token);
-        if(col != null)
-            col.Items.ToList().ForEach(n => notes.Add(new Note(Module, n)));
+        var col = await Module.Service.GetNotesForDocument(Item.Id, revisionId, token);
+        col?.Items.ToList().ForEach(n => notes.Add(new Note(Module, n)));
         return notes;
     }
 
@@ -118,66 +104,54 @@ public sealed class Document : OnBaseItemService<OnBaseCore, DocumentModel>
             throw task.Exception?.InnerException ?? task.Exception ?? new Exception("Failed to retrieve document content.");
     }
     public async Task<FileResponse> GetContentAsync(string revisionId="latest", string fileTypeId ="default", string? pages = null, Context? context = Context.View,
-        int? height = null, int? width = null, Fit? fit = null, string? accept = "*/*", string? if_Match = null, string? range = null)
+        int? height = null, int? width = null, Fit? fit = null, string? accept = "*/*", string? if_Match = null, string? range = null, CancellationToken token = default)
     {
-        var response = await Module.Api.GetContentForRenditionOfRevisionOfDocument(Item.Id, revisionId, fileTypeId, pages, context, height, width, fit, accept, if_Match, range);
+        var response = await Module.Service.GetDocumentContent(Item.Id, revisionId, fileTypeId, pages, context, height, width, fit, accept, if_Match, range, token);
         return new FileResponse(response);
     }
     public void Delete() => DeleteAsync().Wait(Module.App.ClientOptions.RequestTimeOut);
-    public Task DeleteAsync(CancellationToken token = default) => Module.Run(Module.Api.DeleteDocumentById(Item.Id), default);
+    public Task DeleteAsync(CancellationToken token = default) => Module.Service.DeleteDocument(Item.Id, default);
     public void AddNote(AddNoteProperties addNoteProperties, string revisionId = "latest")
         => AddNoteAsync(addNoteProperties, revisionId).Wait(Module.App.ClientOptions.RequestTimeOut);
     public Task AddNoteAsync(AddNoteProperties addNoteProperties, string revisionId = "latest", CancellationToken token = default)
-        => Module.Run(Module.Api.PostNoteOnDocument(Item.Id, revisionId, addNoteProperties), token);
-
+        => Module.Service.PostNoteOnDocument(Item.Id, addNoteProperties, revisionId, token);
     public void UpdateKeywords()
         => UpdateKeywordsAsync().Wait(Module.App.ClientOptions.RequestTimeOut);
-    public async Task UpdateKeywordsAsync()
+    public async Task UpdateKeywordsAsync(CancellationToken token = default)
     {
-        await Module.Run(Module.Api.PutKeywordCollectionForDocument(Id.ToString(), KeywordCollection.GetModel()));
+        await Module.Service.PutKeywordsForDocument(Id.ToString(), KeywordCollection.GetModel(), token);
         await GetKeywordCollection();
     }
-
     public DocumentReindexProperties CreateDocumentReindexProperties()
         => new DocumentReindexProperties(Module, this);
     public void UpdateDocumentDate(DateTime documentDate) => UpdateDocumentDateAsync(documentDate).Wait(Module.App.ClientOptions.RequestTimeOut);
     public Task UpdateDocumentDateAsync(DateTime documentDate, CancellationToken token = default) 
-        => Module.Run(Module.Api.PatchDocumentById(Item.Id, new DocumentPatchRequestModel { DocumentDate = documentDate}),token);    
+        => Module.Service.PatchDocumentDate(Item.Id, new DocumentPatchRequestModel { DocumentDate = documentDate},token);
     //public async Task<Document> ReindexAsync(DocumentReindexProperties props)
     //{
     //    var resp = await Module.Run(Module.Api.PutDocumentById(Item.Id, props.GetModel()));
-        
+
     //    return await Module.GetDocumentByIdAsync(Id);
     //}
-    private void GetDocumentType()
+    public async Task<Revision?> GetRevisionAsync(string revisionId, CancellationToken token = default)
     {
-        if(Item.TypeId != null)
-        {
-            var dt = Module.DocumentTypes.Find(Item.TypeId);
-            if (dt != null && dt is DocumentType d)
-                _documentType = d;
-        }
+        var model = await Module.Service.GetDocumentRevision(Item.Id, revisionId, token);
+        if (model != null)
+            return new Revision(Module, Item, model);
+        else return null;
     }
     private async Task GetRevisions(CancellationToken token = default)
     {
-        var revCol = await Module.Run(Module.Api.GetRevisionCollectionForDocument(Item.Id), token);
+        var revCol = await Module.Service.GetDocumentRevisions(Item.Id,token);
         if (revCol != null && revCol.Items.Count > 0)
             _revisions = revCol.Items.Select(i => new Revision(Module, Item, i)).ToList();
     }
 
     private async Task GetKeywordCollection(CancellationToken token = default)
     {
-        var keycol = await Module.Run(Module.Api.GetKeywordCollectionForDocument(Item.Id, false), token);
+        var keycol = await Module.Service.GetKeywordsForDocument(Item.Id, false, token);
         if (keycol != null)
             _keywordCollection = new KeywordCollection(Module, keycol);
-    }
-    private async Task GetNoteCollection(string revisionId = "latest", CancellationToken token = default)
-    {
-        var noteCol = await Module.Run(Module.Api.GetNoteCollectionForDocument(Item.Id, revisionId), token);
-        if(noteCol != null)
-            _notes = noteCol.Items                    
-                    .Select(c => new Note(Module, c))
-                    .ToList();
     }
     public override string? ToJson()
         => JsonUtility.Serialize(this);

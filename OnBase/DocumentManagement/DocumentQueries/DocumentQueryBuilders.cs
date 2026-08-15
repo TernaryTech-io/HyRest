@@ -1,7 +1,7 @@
 ﻿using HyRest.Utilities;
 using System.Reflection;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 /// <summary>
 /// Represents the information required to execute a custom query.
@@ -158,7 +158,7 @@ public abstract class DocumentQueryBuilder<TItem, TQuery> : DocumentQueryBuilder
         => JsonUtility.Serialize(this);
     public override async Task<DocumentQuery> CreateQueryAsync(bool includeItemCount = false, CancellationToken token = default)
     {
-        var resp = await _core.Run(_core.Api.PostDocumentQuery(GetModel(), includeItemCount), token);
+        var resp = await _core.Service.PostDocumentQuery(GetModel(), includeItemCount, token);
         if (resp != null)
         {
             int count = 0;

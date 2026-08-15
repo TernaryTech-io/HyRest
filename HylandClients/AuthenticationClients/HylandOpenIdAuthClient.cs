@@ -1,6 +1,5 @@
 ﻿using Duende.IdentityModel.Client;
 using Duende.AccessTokenManagement.OpenIdConnect;
-using HyRest.Identity.Credentials;
 using Microsoft.AspNetCore.Http;
 
 namespace HyRest;

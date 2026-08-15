@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public class KeywordFloatingPointProvider : KeywordDataTypeProvider
 {

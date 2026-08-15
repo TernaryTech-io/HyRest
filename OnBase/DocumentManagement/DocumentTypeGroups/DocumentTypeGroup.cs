@@ -1,7 +1,7 @@
 ﻿using HyRest.Utilities;
 using System.Text.Json.Serialization;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public sealed class DocumentTypeGroup : OnBaseItemTypeService<OnBaseCore, DocumentTypeGroupModel>
 {
@@ -21,7 +21,7 @@ public sealed class DocumentTypeGroup : OnBaseItemTypeService<OnBaseCore, Docume
     }
     private async Task PopulateDocumentTypes()
     {
-        var col = await Module.Run(Module.Api.GetDocumentTypeCollectionForDocumentTypeGroup(Item.Id));
+        var col = await Module.Service.GetDocumentTypesForDocumentTypeGroup(Item.Id);
         if(col != null & col.Items.Count > 0)
         {
             List<DocumentType> list = [];

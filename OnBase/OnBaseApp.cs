@@ -1,9 +1,5 @@
-﻿using HyRest.Administration;
-using HyRest.Cache;
-using HyRest.CaseManagement;
-using HyRest.Session;
+﻿using HyRest.Cache;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace HyRest;
 
@@ -25,36 +21,23 @@ public partial class OnBaseApp : OnBaseAppBase
     private OnBaseAdministration _administration { get => (OnBaseAdministration)base.Administration; set => base.Administration = value; }
     #endregion
     /// <summary>
-    /// Constructor for initiating a OnBase App with specified credentials.
+    /// Constructor for initiating a OnBase App through dependancy injection or the OnBaseAppBuilder
     /// </summary>
     /// <param name="logger"></param>
     /// <param name="credentials"></param>
     /// <param name="options"></param>
-    public OnBaseApp(ILogger<OnBaseApp> logger, IHylandClientFactory clientFactory, HylandClientOptions options, OnBaseAppCache cache)
+    public OnBaseApp(ILogger<OnBaseApp> logger, IHylandClientFactory clientFactory, 
+        OnBaseSession session, OnBaseAdministration administration, OnBaseCore core, OnBaseWorkView workView)
     {
         _clientFactory = clientFactory;
-        _options = options;
+        _options = _clientFactory.ClientOptions;
         _logger = logger;
-        _cache = cache;
+        _session = session;
+        _administration = administration;
+        _core = core;
+        _workView = workView;
         Init();
     }
-    /// <summary>
-    /// Constructor for initiating an OnBase App through dependency injection.
-    /// </summary>
-    /// <param name="logger"></param>
-    /// <param name="clientFactory"></param>
-    /// <param name="options"></param>
-    public OnBaseApp(ILogger<OnBaseApp> logger, IHylandClientFactory clientFactory, IOptions<HylandOpenIdClientOptionsBuilder> options, OnBaseAppCache cache)
-    {
-        _logger = logger;
-        var clientOptions = new HylandClientOptions();
-        options.Value.OptionsAction(clientOptions);
-        _options = clientOptions;
-        _clientFactory = clientFactory;
-        _cache = cache;
-        Init();
-    }
-    public override OnBaseAppCache Cache => (OnBaseAppCache)_cache;
     public override bool IsConnected => _session != null ? _session.IsActive : false;
     public override HylandClientFactory ClientFactory => (HylandClientFactory)_clientFactory;
     public override HylandClientOptions ClientOptions => (HylandClientOptions)_options;
@@ -66,10 +49,6 @@ public partial class OnBaseApp : OnBaseAppBase
     public override ILogger<IOnBaseApp> Logger => _logger;
     internal protected OnBaseApp Init()
     {                
-        _session = OnBaseSession.Create(this);
-        _core = OnBaseCore.Create(this);
-        _workView = OnBaseWorkView.Create(this);
-        _administration = OnBaseAdministration.Create(this);
         if (!IsConnected)
             Session.Initiate();
         _isInitated = true;

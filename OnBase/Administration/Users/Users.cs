@@ -1,10 +1,6 @@
-﻿using HyRest.Cache;
-using System.Text;
-using Ternary.DataConversions.Extensions;
+﻿namespace HyRest.OnBase.Administration;
 
-namespace HyRest.Administration;
-
-public class Users : OnBaseItemCollectionService<OnBaseAdministration, User>
+public class Users : OnBaseItemTypeCollectionService<OnBaseAdministration, User>
 {   
     internal Users(OnBaseAdministration module) : base(module)
     {
@@ -12,7 +8,7 @@ public class Users : OnBaseItemCollectionService<OnBaseAdministration, User>
     }
     protected override async Task GetCollection(CancellationToken token = default)
     {
-        var col = await Module.Run(Module.Api.UsersGet(), token);            
+        var col = await Module.Service.GetUsers(token);
         if (col != null)
         {
             col.Items
@@ -24,18 +20,11 @@ public class Users : OnBaseItemCollectionService<OnBaseAdministration, User>
                 });
         }
     }
-    protected override async Task<User?> GetOne(long id, CancellationToken token = default)
+    protected override async Task<User?> GetOne(string id, CancellationToken token = default)
     {
-        var item = await Module.App.Cache.GetOrCreateAsync<User>(id, null, token);
-        if (item != null)
-            return item;
-        var model = await Module.Run(Module.Api.UsersGet2(id.ToString()), token);
+        var model = await Module.Service.GetUser(id);
         if (model != null)
-        {
-            var user = new User(Module, model);
-            Module.App.Cache.SetAsync(user, token);
-            return user;
-        }
+            return new User(Module, model);
         return null;
     }
 }

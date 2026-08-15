@@ -1,9 +1,8 @@
 ﻿using Ternary.DataConversions.Extensions;
 using HyRest.Utilities;
 using System.Text.Json.Serialization;
-using HyRest.Administration;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 public class Note : OnBaseItemService<OnBaseCore, NoteModel>
 {
     private NoteType? _noteType { get; set; }
@@ -65,13 +64,13 @@ public class Note : OnBaseItemService<OnBaseCore, NoteModel>
 
     public async Task<Note> UpdateAsync(UpdateNoteProperties properties, CancellationToken token = default)
     {
-        var model = await Module.Run(Module.Api.PatchNoteByNoteId(Item.Id, properties));
+        var model = await Module.Service.PatchNote(Item.Id, properties, token);
         if (model != null)
             return new Note(Module, model);
         return this;
     }
-    public Task DeleteAsync()
-        => Module.Run(Module.Api.DeleteNoteByNoteId(Item.Id));   
+    public Task DeleteAsync(CancellationToken token = default)
+        => Module.Service.DeleteNote(Item.Id, token);   
     private void GetNoteType()
     {
         var item = Module.NoteTypes.Find(Item.NoteTypeId);

@@ -3,7 +3,7 @@ using Ternary.DataConversions.Providers;
 using HyRest.Utilities;
 using System.Text.Json.Serialization;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public class KeywordType : OnBaseItemTypeService<OnBaseCore, KeywordTypeModel>
 {
@@ -23,22 +23,13 @@ public class KeywordType : OnBaseItemTypeService<OnBaseCore, KeywordTypeModel>
     {
         get
         {
-            if (_currencyFormat == null)
-                PopulateCurrencyFormat().Wait(Module.App.ClientOptions.RequestTimeOut);
+            if (_currencyFormat == null && Item.CurrencyFormatId != null)
+                _currencyFormat = Module.CurrencyFormats[Item.CurrencyFormatId];
             return _currencyFormat;
         }
     }
     public bool IsSecurityMasked => Item.IsSecurityMasked;
     public KeywordTypeMaskSettings? MaskSettings => Item.MaskSettings;
-    private async Task PopulateCurrencyFormat()
-    {
-        if (Item.CurrencyFormatId != null)
-        {
-            var item = await Module.Run(Module.Api.GetCurrencyFormatById(Item.CurrencyFormatId));
-            if (item != null)
-                _currencyFormat = new CurrencyFormat(Module, item);
-        }
-    }
     public IDataTypeConversionProvider CreateKeywordDataTypeHandler()
         => DataType.GetProvider(this);
     public override string? ToJson()

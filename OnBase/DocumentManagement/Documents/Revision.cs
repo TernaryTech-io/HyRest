@@ -4,7 +4,7 @@ using HyRest.Utilities;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public class Revision : OnBaseItemService<OnBaseCore, RevisionModel>
 {
@@ -27,7 +27,7 @@ public class Revision : OnBaseItemService<OnBaseCore, RevisionModel>
     }
     private async Task PopulateRenditions()
     {
-        var renCol = await Module.Run(Module.Api.GetRenditionCollectionForRevisionOfDocument(_doc.Id, Item.Id));
+        var renCol = await Module.Service.GetRevisionRenditions(_doc.Id, Item.Id);
         if (renCol != null && renCol.Items.Count > 0)
             _renditions = renCol.Items.Select(i => new Rendition(Module, Item, i)).ToList();
     }

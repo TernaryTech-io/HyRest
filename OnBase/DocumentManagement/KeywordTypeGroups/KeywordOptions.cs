@@ -1,6 +1,6 @@
 ﻿using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public class KeywordOptions : OnBaseRestService
 {

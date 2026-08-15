@@ -2,7 +2,7 @@
 using Ternary.DataConversions.Extensions;
 using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public class MultiInstanceKeywordGroup : KeywordGroup
 {

@@ -2,7 +2,7 @@
 using Ternary.DataConversions.Providers;
 using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public class KeywordValue : OnBaseItemService<OnBaseCore, KeywordValueModel>
 {

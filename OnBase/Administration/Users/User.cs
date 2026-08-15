@@ -1,6 +1,6 @@
-﻿namespace HyRest.Administration;
+﻿namespace HyRest.OnBase.Administration;
 
-public class User : OnBaseItemService<OnBaseAdministration, UserModel>
+public class User : OnBaseItemTypeService<OnBaseAdministration, UserModel>
 {
     internal User(OnBaseAdministration module, UserModel user) : base(module, user)
     {
@@ -37,7 +37,7 @@ public class User : OnBaseItemService<OnBaseAdministration, UserModel>
 
     private async Task GetDetailedModel()
     {
-        var userModel = await Module.Run<IOnBaseAdministrationAPI, UserModel>((api, ct) => api.UsersGet2(Item.Id.ToString()));
-        base.ReplaceModel(userModel);
+        var userModel = await Module.Service.GetUser(Item.Id);
+        ReplaceModel(userModel);
     }
 }
