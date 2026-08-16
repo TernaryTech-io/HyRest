@@ -12,7 +12,7 @@ public partial class OnBaseWorkViewService : OnBaseService<IOnBaseWorkViewAPI>, 
         {
             col.Items.ToList().ForEach(async i =>
             {
-                await Cache.SetAsync(i, token);
+                await Cache.SetAsync(i, token, CachePrefix);
             });
             return col;
         }
@@ -26,7 +26,7 @@ public partial class OnBaseWorkViewService : OnBaseService<IOnBaseWorkViewAPI>, 
         {
             var model = col.Items.FirstOrDefault(a => a.Id == id);
             if(model != null)
-                await Cache.SetAsync(model, token);
+                await Cache.SetAsync(model, token, CachePrefix);
             return model;
         }
         return null;

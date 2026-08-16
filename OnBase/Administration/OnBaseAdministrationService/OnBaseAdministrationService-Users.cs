@@ -18,7 +18,7 @@ public partial class OnBaseAdministrationService : OnBaseService<IOnBaseAdminist
         {
             col.Items.ToList().ForEach(async i =>
             {
-                await Cache.SetAsync(i, token);
+                await Cache.SetAsync(i, token, CachePrefix);
             });
             return col;
         }
@@ -40,7 +40,7 @@ public partial class OnBaseAdministrationService : OnBaseService<IOnBaseAdminist
                 item = col.Items.FirstOrDefault();
         }
         if (item != null)
-            await Cache.SetAsync(item);
+            await Cache.SetAsync(item, token, CachePrefix);
         return item;
     }
 }

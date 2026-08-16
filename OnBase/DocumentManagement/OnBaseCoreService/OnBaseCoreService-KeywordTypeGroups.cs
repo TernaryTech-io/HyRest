@@ -15,7 +15,7 @@ public partial class OnBaseCoreService : OnBaseService<IOnBaseDocumentAPI>, IOnB
         {
             col.Items.ToList().ForEach(async i =>
             {
-                await Cache.SetAsync(i, token);
+                await Cache.SetAsync(i, token, CachePrefix);
             });
             return col;
         }
@@ -37,7 +37,7 @@ public partial class OnBaseCoreService : OnBaseService<IOnBaseDocumentAPI>, IOnB
                 item = col.Items.FirstOrDefault();
         }
         if (item != null)
-            await Cache.SetAsync(item);
+            await Cache.SetAsync(item, token, CachePrefix);
         return item;
     }
     public Task<KeywordTypeCollectionModel?> GetKeywordTypesForKeywordTypeGroup(string id, CancellationToken token = default)

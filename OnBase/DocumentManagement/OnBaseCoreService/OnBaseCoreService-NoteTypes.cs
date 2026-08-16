@@ -13,7 +13,7 @@ public partial class OnBaseCoreService : OnBaseService<IOnBaseDocumentAPI>, IOnB
         {
             col.Items.ToList().ForEach(async i =>
             {
-                await Cache.SetAsync(i, token);
+                await Cache.SetAsync(i, token, CachePrefix);
             });
             return col;
         }
@@ -29,7 +29,7 @@ public partial class OnBaseCoreService : OnBaseService<IOnBaseDocumentAPI>, IOnB
         if (long.TryParse(identifier, out long id))
             item = await _getNoteType(identifier, token);      
         if (item != null)
-            await Cache.SetAsync(item);
+            await Cache.SetAsync(item, token, CachePrefix);
         return item;
     }
 }

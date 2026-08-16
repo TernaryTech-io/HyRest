@@ -6,42 +6,41 @@ public class OnBaseAppCache : IOnBaseAppCache
     
 {
     private HybridCache _cache;
-    private string? _prefex;
     public OnBaseAppCache(HybridCache cache, string? prefix = null)
     {
         _cache = cache;
     }
-    public async Task<T?> GetOrCreateAsync<T>(string id, Func<CancellationToken, ValueTask<T>> factory, CancellationToken ct = default) 
+    public async Task<T?> GetOrCreateAsync<T>(string id, Func<CancellationToken, ValueTask<T>> factory, CancellationToken ct = default, string? prefix = null) 
         where T : class, IOnBaseCacheable
         => await _cache.GetOrCreateAsync(
-            key: CreateKey<T>(id), 
+            key: CreateKey<T>(id, prefix), 
             factory: factory, 
             tags: [],
             cancellationToken: ct);
-    public async Task RemoveAsync<T>(T item, CancellationToken ct = default) where T : class, IOnBaseCacheable
-     => await _cache.RemoveAsync(CreateKey(item), ct);
+    public async Task RemoveAsync<T>(T item, CancellationToken ct = default, string? prefix = null) where T : class, IOnBaseCacheable
+     => await _cache.RemoveAsync(CreateKey(item, prefix), ct);
 
-    public async Task SetAsync<T>(T item, CancellationToken ct = default) 
+    public async Task SetAsync<T>(T item, CancellationToken ct = default, string? prefix = null) 
         where T : class, IOnBaseCacheable
     {
-        var idKey = CreateKey(item);
+        var idKey = CreateKey(item, prefix);
         await _cache.SetAsync(idKey, item, null, null, ct);
         if (item.Name != null)
         {
-            var nameKey = CreateKey<T>(item.Name);
+            var nameKey = CreateKey<T>(item.Name, prefix);
             await _cache.SetAsync(nameKey, item, null, null, ct);
         }
         if(item.SystemName != null)
         {
-            var sysKey = CreateKey<T>(item.SystemName);
+            var sysKey = CreateKey<T>(item.SystemName, prefix);
             await _cache.SetAsync(sysKey, item, null, null, ct);
         }        
     }
-    public async Task<(bool,T?)> TryGetValueAsync<T>(string key, CancellationToken ct = default)
+    public async Task<(bool,T?)> TryGetValueAsync<T>(string key, CancellationToken ct = default, string? prefix = null)
         where T : class, IOnBaseCacheable
     {
         var result = await _cache.GetOrCreateAsync<object,object>(
-            key,
+            CreateKey<T>(key, prefix),
             null!,
             DoNothing,
             ReadOnlyOptions,
@@ -50,16 +49,16 @@ public class OnBaseAppCache : IOnBaseAppCache
 
         return (result is not null, (T)result!);
     }
-    public async Task<bool> ExistsAsync<T>(string key, CancellationToken ct = default)
+    public async Task<bool> ExistsAsync<T>(string key, CancellationToken ct = default, string? prefix = null)
         where T : class, IOnBaseCacheable
     {
-        var (exists,_) = await TryGetValueAsync<T>(key, ct);
+        var (exists,_) = await TryGetValueAsync<T>(key, ct, prefix);
         return exists;
     }
-    private string CreateKey<T>(string id) where T : class, IOnBaseCacheable
-        => CacheKey.Create(id, typeof(T), _prefex).ToString();
-    private string CreateKey<T>(T item) where T : class, IOnBaseCacheable
-        => CacheKey.Create(item, _prefex).ToString();
+    private string CreateKey<T>(string id, string? prefix = null) where T : class, IOnBaseCacheable
+        => CacheKey.Create(id, typeof(T), prefix).ToString();
+    private string CreateKey<T>(T item, string? prefix = null) where T : class, IOnBaseCacheable
+        => CacheKey.Create(item, prefix).ToString();
     /// <summary>
     /// Provides override options so that null or default values aren't written to the cache for ExistsAsync & TryGetValueAsync
     /// </summary>
