@@ -9,7 +9,7 @@ public class HylandBasicAuthClient : HylandAuthClient
     /// <param name="httpClient"></param>
     public HylandBasicAuthClient(HttpClient httpClient) : base(httpClient)
     {        
-        _api = IHylandRestAPI.Get<IHylandIdentityServiceAuthenticationAPI>(_httpClient);
+        _api = IHylandRestAPI.Get<IHylandIdentityServiceAuthenticationAPI>(_httpClient, HylandClientFactory.Settings);
     }
     public override HylandBasicAuthClient WithCredentials(IAuthenticationCredentials credentials)
     {

@@ -11,7 +11,7 @@ public class HylandApiClient : IHylandApiClient
     public HylandApiClient(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        _api = IHylandRestAPI.Get<IOnBaseSessionAPI>(_httpClient);
+        _api = IHylandRestAPI.Get<IOnBaseSessionAPI>(_httpClient, HylandClientFactory.Settings);
     }
     public HttpClient HttpClient => _httpClient;
     public CookieContainer CookieContainer => _cookieContainer;

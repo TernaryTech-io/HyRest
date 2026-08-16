@@ -1,4 +1,5 @@
 ﻿using HyRest.Utilities;
+using System.Text.Json;
 
 namespace HyRest.OnBase.Core;
 
@@ -141,7 +142,7 @@ public class DocumentArchiveProperties : OnBaseRestService, IAsyncDisposable, ID
     {
         _model.KeywordCollection = KeywordCollection.GetModel();
         _model.Uploads = Files.Select(f => new UploadModel { Id = f.Id }).ToList();
-        var resp = await _core.Service.PostDocument(_model, token);
+        var resp = await _core.Service.PostDocument(_model, token);        
         if (resp != null)
             _documentId = resp.Id;
     }

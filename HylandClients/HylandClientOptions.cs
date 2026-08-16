@@ -24,19 +24,14 @@ public class HylandClientOptions : IHylandClientOptions
     /// Sets the API server timeout in seconds.
     /// </summary>
     public int RequestTimeOut { get; set; } = 120;
-    /// <summary>
-    /// Set the default logging level.
-    /// </summary>
-    public LogLevel LogLevel { get; set; } = LogLevel.Information;
     public static HylandClientOptions Create(string idsBaseUrl, string apiBaseUrl,
-        bool useQueryMetering = false, string defaultLanguage = "en-US", int requestTimeOut = 120, LogLevel loglevel = LogLevel.Information) => new HylandClientOptions
+        bool useQueryMetering = false, string defaultLanguage = "en-US", int requestTimeOut = 120) => new HylandClientOptions
         {
             IdsBaseUrl = idsBaseUrl,
             ApiBaseUrl = apiBaseUrl,
             UseQueryMetering = useQueryMetering,
             DefaultLanguage = defaultLanguage,    
-            RequestTimeOut = requestTimeOut,
-            LogLevel = loglevel
+            RequestTimeOut = requestTimeOut
         };
 }
 

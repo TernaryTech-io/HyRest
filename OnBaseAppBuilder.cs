@@ -2,7 +2,6 @@
 using HyRest.OnBase.ApiServices;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace HyRest.OnBase;
 
@@ -12,19 +11,19 @@ namespace HyRest.OnBase;
 public class OnBaseAppBuilder
 {
     public IServiceCollection ServiceCollection { get; set; }
-    public IServiceProvider Services { get; protected set; }
+    internal IServiceProvider Services { get; set; }
     private HylandClientFactory _clientFactory { get; set; }
-    private IAuthenticationCredentials _authCredentials { get; set; }
+    private IAuthenticationCredentials? _authCredentials { get; set; }
     private HylandClientOptions _options { get; set; }
     public OnBaseApp Build()
     {
-        RegisterAppServices<OnBaseApp>(ServiceCollection);
+        RegisterAppServices<OnBaseApp>(ServiceCollection, _options);
         Services = ServiceCollection.BuildServiceProvider();
         return Services.GetRequiredService<OnBaseApp>();
     }
     public OnBaseScopedApp BuildScoped()
     {
-        RegisterAppServices<OnBaseScopedApp>(ServiceCollection);
+        RegisterAppServices<OnBaseScopedApp>(ServiceCollection, _options);
         Services = ServiceCollection.BuildServiceProvider();
         return Services.GetRequiredService<OnBaseScopedApp>();
     }
@@ -33,19 +32,25 @@ public class OnBaseAppBuilder
     /// </summary>
     /// <param name="credentials"></param>
     /// <param name="optionsAction"></param>
-    public OnBaseAppBuilder(IAuthenticationCredentials credentials, HylandClientOptions options, IServiceCollection? serviceCollection = null)
+    public OnBaseAppBuilder(HylandClientOptions options, IAuthenticationCredentials? credentials = null, IServiceCollection? serviceCollection = null)
     {
         _authCredentials = credentials;
         ServiceCollection = serviceCollection ?? new ServiceCollection();
-        _options = options;
-        ServiceCollection.AddSingleton(_options);
-        ServiceCollection.AddLogging(options =>
-        {
-            if (Environment.UserInteractive)
-                options.AddConsole();
-            options.SetMinimumLevel(_options.LogLevel);
-        });
-        ServiceCollection.AddHybridCache(options =>
+        _options = options;        
+        if(_authCredentials != null)
+            HylandClientFactory.RegisterBasicAuthServices(ServiceCollection, _options, _authCredentials);        
+    }
+    public OnBaseAppBuilder WithCredentials(IAuthenticationCredentials credentials)
+    {
+        _authCredentials = credentials;
+        HylandClientFactory.RegisterBasicAuthServices(ServiceCollection, _options, _authCredentials);
+        return this;
+    }
+    public static void RegisterAppServices<T>(IServiceCollection sc, HylandClientOptions options)
+        where T : class, IOnBaseApp
+    {
+        sc.AddSingleton(options);
+        sc.AddHybridCache(options =>
         {
             options.DefaultEntryOptions = new HybridCacheEntryOptions
             {
@@ -53,12 +58,7 @@ public class OnBaseAppBuilder
                 LocalCacheExpiration = TimeSpan.FromMinutes(60),
             };
         });
-        ServiceCollection.AddSingleton<HylandClientFactory>();
-        HylandClientFactory.RegisterBasicAuthServices(ServiceCollection, _options, _authCredentials);        
-    }
-    public static void RegisterAppServices<T>(IServiceCollection sc)
-        where T : class, IOnBaseApp
-    {        
+        sc.AddSingleton<HylandClientFactory>();
         sc.AddSingleton<OnBaseAppCache>();
         sc.AddSingleton<OnBaseSessionService>();
         sc.AddSingleton<OnBaseCoreService>();
@@ -78,6 +78,6 @@ public class OnBaseAppBuilder
     /// <param name="credentials"></param>
     /// <param name="optionsAction"></param>
     /// <returns></returns>
-    public static OnBaseAppBuilder Create(IAuthenticationCredentials credentials, HylandClientOptions options)
-        => new OnBaseAppBuilder(credentials, options);
+    public static OnBaseAppBuilder Create(HylandClientOptions options, IAuthenticationCredentials? credentials = null)
+        => new OnBaseAppBuilder(options, credentials);
 }

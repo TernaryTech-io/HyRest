@@ -5,6 +5,10 @@ namespace HyRest.OnBase.Core;
 
 public class StandAloneKeywordTypes : KeywordTypeGroup
 {
+    internal StandAloneKeywordTypes() 
+    {
+        
+    }
     internal StandAloneKeywordTypes(OnBaseCore core, KeywordTypeGroupModel item) : base(core, item)
     {
         item.KeywordTypes?.ToList()
@@ -23,7 +27,7 @@ public class MultiInstanceKeywordTypeGroup : KeywordTypeGroup
         => JsonUtility.Serialize(this);
 }
 public class SingleInstanceKeywordTypeGroup : KeywordTypeGroup
-{
+{    
     internal SingleInstanceKeywordTypeGroup(OnBaseCore core, KeywordTypeGroupModel item) : base(core, item)
     {
 
@@ -36,6 +40,10 @@ public abstract class KeywordTypeGroup: OnBaseItemTypeService<OnBaseCore, Keywor
 {
     private List<KeywordType> _keywordTypes { get; set; } = [];
     private KeywordTypeGroupType _groupType { get; set; }
+    /// <summary>
+    /// For rare instances of no standalone keywords.
+    /// </summary>
+    internal KeywordTypeGroup() : base(null, null) => _groupType = KeywordTypeGroupType.StandAlone; 
     internal KeywordTypeGroup(OnBaseCore core, KeywordTypeGroupModel item) : base(core, item)
     {
         if (item.StorageType == KeywordTypeGroupStorageType.MultiInstance)
@@ -45,12 +53,6 @@ public abstract class KeywordTypeGroup: OnBaseItemTypeService<OnBaseCore, Keywor
         else
             _groupType = KeywordTypeGroupType.StandAlone;
     }
-    //internal KeywordTypeGroup(OnBaseCore core, List<KeywordType> keywordTypes) : base(core, null)
-    //{        
-    //    if (keywordTypes != null)
-    //        _keywordTypes = keywordTypes;
-    //    _groupType = KeywordTypeGroupType.StandAlone;
-    //}
     [HyRestConverter<JsonStringEnumConverter>]
     public KeywordTypeGroupType StorageType => _groupType;  
     public KeywordType? this[long id] => _keywordTypes.FirstOrDefault(i => i.Id == id);

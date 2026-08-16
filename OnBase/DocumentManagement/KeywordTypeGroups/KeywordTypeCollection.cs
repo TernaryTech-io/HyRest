@@ -7,7 +7,7 @@ public sealed class KeywordTypeCollection : OnBaseRestService
     private readonly KeywordTypeGroupCollectionModel _model;
     private KeywordOptions _keywordOptions { get; set; }
     private OnBaseCore _core => (OnBaseCore)base.Module;
-    private StandAloneKeywordTypes? _standAloneKeywordTypes { get; set; }
+    private StandAloneKeywordTypes? _standAloneKeywordTypes { get; set; } = new();
     private List<SingleInstanceKeywordTypeGroup> _singleInstanceKeywordTypeGroups { get; set; } = [];
     private List<MultiInstanceKeywordTypeGroup> _multiInstanceKeywordTypeGroups { get; set; } = [];
     internal KeywordTypeCollection(OnBaseCore core, KeywordTypeGroupCollectionModel item) : base(core)

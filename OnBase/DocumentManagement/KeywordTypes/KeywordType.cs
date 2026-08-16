@@ -1,18 +1,34 @@
-﻿using System.Globalization;
+﻿using HyRest.Utilities;
+using System.Globalization;
 using Ternary.DataConversions.Providers;
-using HyRest.Utilities;
-using System.Text.Json.Serialization;
-using Ternary.DataConversions.Extensions;
 
 namespace HyRest.OnBase.Core;
 
-public class KeywordType : OnBaseItemTypeService<OnBaseCore, KeywordTypeModel>
+public sealed class KeywordType : OnBaseItemTypeService<OnBaseCore, KeywordTypeModel>
 {
     private CurrencyFormat? _currencyFormat { get; set; }
     internal CultureInfo Culture => new CultureInfo(Module.App.ClientOptions.DefaultLanguage);
     public KeywordType(OnBaseCore core, KeywordTypeModel keywordType) : base(core, keywordType)
     {
-
+        
+    }
+    public override string Name
+    {
+        get
+        {
+            if (Item.Name == null)
+                PopulateDetails();
+            return Item.Name;
+        }
+    }
+    public override string? SystemName
+    {
+        get
+        {
+            if (Item.SystemName == null)
+                PopulateDetails();
+            return Item.SystemName;
+        }
     }
     [HyRestConverter<DataTypeToStringConverter>]
     public KeywordDataType DataType => KeywordDataType.Get(Item.DataType);
@@ -35,5 +51,12 @@ public class KeywordType : OnBaseItemTypeService<OnBaseCore, KeywordTypeModel>
         => DataType.GetProvider(this);
     public override string? ToJson()
         => JsonUtility.Serialize(this);
+
+    private void PopulateDetails()
+    {
+        var keyType = Module.KeywordTypes[Item.Id];
+        if (keyType != null)
+            ReplaceModel(keyType.Item);
+    }
 }
     

@@ -1,6 +1,8 @@
 ﻿
+using HyRest.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Refit;
 using System.Net;
 
 namespace HyRest;
@@ -73,6 +75,12 @@ public sealed class HylandClientFactory : IHylandClientFactory
     public TApi CreateClient<TApi>() where TApi : IHylandRestAPI
     {
         var client = _factory.CreateClient(nameof(HylandApiClient));
-        return IHylandRestAPI.Get<TApi>(client);
+        return IHylandRestAPI.Get<TApi>(client, Settings);
     }
+    public static RefitSettings Settings =>
+        new RefitSettings
+        {
+            CaptureRequestContent = true,
+            ContentSerializer = new SystemTextJsonContentSerializer(JsonUtility.Options)            
+        };
 }
