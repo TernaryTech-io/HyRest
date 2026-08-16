@@ -78,24 +78,32 @@ var creds = AuthenticationCredentials.CreateUserCredentials(
     clientSecret: "your-client-secret"
 );
 
-// Configure client options
-var options = HylandClientOptions.Create(
-    idsBaseUrl: "https://onbase.server.com/IdentityServer",
-    apiBaseUrl: "https://onbase.server.com/ApiServer",
-    useQueryMetering: false
-);
+// 2. Create the application builder:
+var appBuilder = OnBaseAppBuilder.Create(new HylandClientOptions
+    {
+    IdsBaseUrl = "https://your-server/IdentityServer",
+    ApiBaseUrl = "https://your-server/APIServer",
+    //Optional
+    DefaultLanguage = "en-US",
+    UseQueryMetering = true, // 'True' If you have the query api license. Default is false
+    RequestTimeOut = 180, //Global request timeout in seconds for API calls.
+}, creds);
 
-// Set up logging (optional but recommended)
-var logFactory = LoggerFactory.Create(builder => 
-    builder.SetMinimumLevel(LogLevel.Information).AddConsole()
-);
-var logger = logFactory.CreateLogger<OnBaseApp>();
+// 3. Set up logging (optional but recommended)
+appBuilder.ServiceCollection.AddLogging(sp =>
+{
+    sp.AddConsole();
+    sp.SetMinimumLevel(LogLevel.Information);
+});
 
-// Retrieve a document using scoped approach (auto-cleanup)
-using var app = OnBaseScopedApp.CreateScoped(options, creds, logger);
-var doc = await app.Core.GetDocumentByIdAsync(12345);
-app.Logger.LogInformation($"Retrieved document: {doc.DocumentType?.Name}");
+// 4. Builder the app
+var app = appBuilder.Build();
 ```
+
+**Run the example**:
+   ```bash
+   dotnet run
+   ```
 
 ## Getting Started
 
@@ -133,6 +141,7 @@ Client options provide fine-grained control over your HyRest application while o
 | `string` | `ApiBaseUrl` | **REQUIRED** | Base URL of your Hyland REST API Server<br/>Example: `https://onbase.server.com/ApiServer` |
 | `bool` | `UseQueryMetering` | *Optional* | Set to `true` if using QueryMetering API license<br/>Default: `false` (uses concurrent/named licenses) |
 | `string` | `DefaultLanguage` | *Optional* | Default language for API responses<br/>Default: `en-US` |
+| `int` | `RequestTimeOut` | *Optional* | Default timeout for rest calls to the Hyland RestAPI</br>Default: `120`
 
 #### Building the Options
 
@@ -143,7 +152,8 @@ var options = new HylandClientOptions
         ApiBaseUrl = "https://[server]/APIServer",
         //Optional
         DefaultLanguage = "en-US",
-        UseQueryMetering = true // If you have the license. Default is false
+        UseQueryMetering = true, // If you have the license. Default is false
+        RequestTimeOut: 180 //Set to what you feel is an appropriate timeout for requests.
     };
 ```
 
@@ -152,35 +162,13 @@ var options = new HylandClientOptions
 HyRest uses `Microsoft.Extensions.Logging`, giving you access to numerous logging providers. Here's an example using console logging:
 
 ```csharp
-var logFactory = LoggerFactory.Create(builder =>
+appBuilder.ServiceCollection.AddLogging(sp =>
 {
-    builder
-        .SetMinimumLevel(LogLevel.Information)
-        .AddConsole();
+    sp.AddConsole();
+    sp.SetMinimumLevel(LogLevel.Information);
 });
-var logger = logFactory.CreateLogger<OnBaseApp>();
-
-//OR if using the scoped version
-var logger = logFactory.CreateLogger<OnBaseScopedApp>();
-
 ```
-
-For enhanced console output with color support, you can use the `Ternary.Extensions.Logging` package:
-
-```csharp
-var logFactory = LoggerFactory.Create(builder =>
-{
-    builder
-        .SetMinimumLevel(LogLevel.Information)
-        .AddColorConsole(config =>
-        {
-            config.LogLevel = LogLevel.Information;
-        });
-});
-var logger = logFactory.CreateLogger<OnBaseApp>();
-```
-
-> 
+> Note: When using the HyRest.DependencyInjection library, HyRest will use any existing logging providers that you have configured.
 
 ### Step 4: Creating a OnBaseApp Instance
 
@@ -188,21 +176,21 @@ HyRest offers two application patterns to suit different use cases:
 
 #### OnBaseScopedApp
 
-The scoped app implements `IDisposable` and `IAsyncDisposable`, automatically handling authentication and session cleanup:
+The scoped app implements `IDisposable` and `IAsyncDisposable`, automatically handling authentication and session cleanup. Additionally, HyRest utilizes Microsofts `HybridCache` to cache type collection results so that background searches for document types, keyword types, etc, are fast for the user.
 
 ```csharp
-var scoped = OnBaseScopedApp.CreateScopedApp(logger, creds, options);
+using var scoped = appBuilder.BuildScoped();
 var doc = await scoped.Core.GetDocumentByIdAsync(12345);
 // Session automatically disconnects when disposed```
 
 **Best for:** Quick operations, single transactions, scripts, and background jobs.
 
-#### Full Application (For Long-Running Operations)
+#### Full Application (For Service level applications)
 
 The full `OnBaseApp` gives you complete control over session lifecycle to manage how you see fit.
 
 ```csharp
-var app = OnBaseApp.Create(logger, creds, options);
+var app = appBuilder.Build();
 
 if (!app.IsConnected)
     app.Session.Initiate(); //Initiates an OnBase Session and retrieves session cookie.
@@ -210,8 +198,7 @@ else if (app.IsConnected)
     app.Session.Disconnect(); //Logs out of OnBase, closing the session.
 ```
 
-
-**Best for:** Long-running applications, batch processing, or when you need fine-grained session control.
+**Best for:** Long-running applications, batch processing, Service operations, or when you need fine-grained session control.
 
 ## Common Tasks
 
@@ -221,6 +208,7 @@ HyRest uses familiar Unity API conventions for document operations:
 
 ```csharp
 var doc = await app.Core.GetDocumentByIdAsync(12345);
+//or var doc = app.Core.GetDocumentById(12345);
     
 // Access document properties
 app.Logger.LogInformation($"Document Type: {doc.DocumentType?.Name}");
@@ -248,7 +236,8 @@ var builder = app.Core.CreateDocumentQueryBuilder<DocumentTypeQueryBuilder>()
         keyword.Value = "You can get with this...";
         keyword.Operator = QueryKeywordOperator.Equal;
         keyword.Relation = QueryKeywordRelation.Or;
-    }).AddQueryKeyword((keyword) =>
+    })
+    .AddQueryKeyword((keyword) =>
     {
         keyword.Id = "Description"; //Id or Name works
         keyword.Value = "...you can get with that.";
@@ -275,18 +264,18 @@ If you supply a filename and the extension does not match the document's file ex
 var content = doc.GetContent(); // You can specify rendition or revision, pages, etc.
 content.SaveToFile(@"\\path\to\save");
 
-content.SaveToFile(@"\\path\to\save", "OptionalFileName.tiff"); //Extension might be updated if it doesn't match.
+content.SaveToFile(@"\\path\to\save", "OptionalFileName.tif"); //Extension might be updated if it doesn't match.
 ```
 
 ### Uploading Documents
 
-Document archiving is simplified with automatic handling of multi-part uploads and keyword type conversion:
+Document archiving is simplified with automatic handling of FileType mapping, multi-part uploads and keyword type conversion:
 
 ```csharp
 var docType = app.Core.DocumentTypes[105];
 var importDoc = docType.CreateNewDocumentArchiveProperties();
 importDoc.DocumentDate = DateTime.Today;
-importDoc.WithFile(@"\\path\to\file.tiff");
+importDoc.WithFile(@"\\path\to\file.pdf");
 
 var keyCollection = importDoc.KeywordCollection;
 
@@ -300,7 +289,7 @@ var keyword = keyCollection
 var docSIKG = keyCollection.CreateEditableSingleInstanceRecord("Document Information");
 var fileName = docSIKG
     .CreateEditableKeyword("File Name")
-    .Add("file.tiff");
+    .Add("file.pdf");
 var batchNum = docSIKG
     .CreateEditableKeyword("Batch Number")
     .Add(13); 
@@ -318,7 +307,7 @@ var custName = custMIKG
 var newDoc = importDoc.ArchiveDocument();
 ```
 
-> **Smart Feature:** HyRest automatically validates keyword values against configured masks and performs data type conversion based on keyword type settings. You can pass a string representation of the value or a strongly typed version. For example, a numeric value can be passed as `"12345"` or `12345`
+> **Smart Feature:** HyRest automatically validates keyword values against configured masks and performs data type conversion based on keyword type settings. You can pass a string representation of the value or a strongly typed value. For example, a numeric value can be passed as `"12345"` or `12345`
 
 ### Updating Keywords
 
@@ -351,7 +340,7 @@ doc.UpdateKeywords(); //Commit the keyword updates.
 
 ## Best Practices
 
-1. **Use Scoped Apps for Simple & Quick Operations** - Let HyRest handle cleanup automatically
+1. **Use Scoped Apps for Simple & Quick Operations** - Let HyRest handle session cleanup automatically, while the cache keeps the app snappy.
 2. **Always Disconnect Sessions** - When using full `OnBaseApp`, ensure `DisconnectAsync()` is called or the Session will remain in OnBase.
 3. **Enable Logging** - Helps diagnose issues and track API call counts
 4. **Store Credentials Securely** - Use environment variables, Azure Key Vault, or similar secure storage
