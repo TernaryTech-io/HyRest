@@ -89,7 +89,14 @@ public class OnBaseKeywordMask
                 return false;
             }
         }
-        result = string.Format(_formatString, validChars.ToArray());
+        try
+        {
+            result = string.Format(_formatString, validChars.ToArray());
+        }
+        catch
+        {
+            return false;
+        }
         return ValidateMask(result);
     }
     public bool ValidateMask(string value)

@@ -7,6 +7,7 @@ public class QueryKeyword : OnBaseRestService
 {
     private OnBaseCore _core => (OnBaseCore)base.Module;
     private KeywordType? _keywordType { get; set; }
+    private object? _keywordValue { get; set; }
     internal QueryKeyword(OnBaseCore core) : base(core)
     {
        
@@ -18,7 +19,7 @@ public class QueryKeyword : OnBaseRestService
     /// <summary>
     /// The keyword value.
     /// </summary>
-    public object? Value { get; set; }
+    public object? Value { get => _keywordValue; set => SetKeywordTypeValue(value); }
 
     /// <summary>
     /// Represents the operator for the keyword value of
@@ -34,6 +35,16 @@ public class QueryKeyword : OnBaseRestService
     [HyRestConverter<JsonStringEnumConverter>]
     public QueryKeywordRelation Relation { get; set; }
 
+    private void SetKeywordTypeValue(object? value)
+    {
+        if(_keywordType != null)
+        {
+            var provider = _keywordType.CreateKeywordDataTypeHandler();
+            _keywordValue = provider.Parse(value);
+        }
+        else
+            _keywordValue = value;
+    }
     private void SetKeywordTypeId(string? value)
     {
         if (value == null)
