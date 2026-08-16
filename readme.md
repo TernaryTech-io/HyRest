@@ -146,15 +146,15 @@ Client options provide fine-grained control over your HyRest application while o
 #### Building the Options
 
 ```csharp
-var options = new HylandClientOptions
+var appBuilder = OnBaseAppBuilder.Create(new HylandClientOptions
     {
-        IdsBaseUrl = "https://[server]/IdentityServer",
-        ApiBaseUrl = "https://[server]/APIServer",
-        //Optional
-        DefaultLanguage = "en-US",
-        UseQueryMetering = true, // If you have the license. Default is false
-        RequestTimeOut: 180 //Set to what you feel is an appropriate timeout for requests.
-    };
+    IdsBaseUrl = "https://your-server/IdentityServer",
+    ApiBaseUrl = "https://your-server/APIServer",
+    //Optional
+    DefaultLanguage = "en-US",
+    UseQueryMetering = true, // 'True' If you have the query api license. Default is false
+    RequestTimeOut = 180, //Global request timeout in seconds for API calls.
+}, creds);
 ```
 
 ### Step 3: Setting Up Logging
@@ -181,7 +181,8 @@ The scoped app implements `IDisposable` and `IAsyncDisposable`, automatically ha
 ```csharp
 using var scoped = appBuilder.BuildScoped();
 var doc = await scoped.Core.GetDocumentByIdAsync(12345);
-// Session automatically disconnects when disposed```
+// Session automatically disconnects when disposed
+```
 
 **Best for:** Quick operations, single transactions, scripts, and background jobs.
 
