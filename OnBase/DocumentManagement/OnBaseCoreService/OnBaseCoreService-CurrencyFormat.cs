@@ -1,0 +1,41 @@
+﻿namespace HyRest.OnBase.ApiServices;
+
+public partial class OnBaseCoreService : OnBaseService<IOnBaseDocumentAPI>, IOnBaseCoreService
+{
+    private Task<CurrencyFormatCollectionModel?> _getCurrencyFormats(IEnumerable<string> ids, IEnumerable<string> systemNames, CancellationToken token = default)
+        => Run(Api.GetCurrencyFormatCollection(ids, systemNames, Options.DefaultLanguage), token);
+    private Task<CurrencyFormatModel?> _getCurrencyFormat(string id, CancellationToken token = default)
+        => Run(Api.GetCurrencyFormatById(id, Options.DefaultLanguage), token);
+    public async Task<CurrencyFormatCollectionModel?> GetCurrencyFormats(CancellationToken token = default)
+    {
+        var col = await _getCurrencyFormats([], [], token);
+        if (col != null)
+        {
+            col.Items.ToList().ForEach(async i =>
+            {
+                await Cache.SetAsync(i, token);
+            });
+            return col;
+        }
+        else
+            return null;
+    }
+    public async Task<CurrencyFormatModel?> GetCurrencyFormat(string identifier, CancellationToken token = default)
+    {
+        CurrencyFormatModel? item = null;
+        if (Cache.TryGetValue(identifier, out item))
+            return item;
+
+        if (long.TryParse(identifier, out long id))
+            item = await _getCurrencyFormat(identifier, token);
+        else
+        {
+            var col = await _getCurrencyFormats([], [identifier], token);
+            if (col != null)
+                item = col.Items.FirstOrDefault();
+        }
+        if (item != null)
+            await Cache.SetAsync(item);
+        return item;
+    }
+}

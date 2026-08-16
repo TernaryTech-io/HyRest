@@ -1,19 +1,19 @@
 ﻿using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
-public class NoteType : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore, NoteTypeModel>
+public class NoteType : OnBaseItemTypeService<OnBaseCore, NoteTypeModel>
 {
     public NoteType(OnBaseCore core, NoteTypeModel item) : base(core,item)
     {
 
     }
-    public NoteColor Color => Item.Color;
-    public NoteTypeDisplayFlags DisplayFlags => Item.DisplayFlags;
+    public NoteColor? Color => Item.Color;
+    public NoteTypeDisplayFlags? DisplayFlags => Item.DisplayFlags;
     public NoteTypeModelFlavor Flavor => Item.Flavor;
     public string? FontId => Item.FontId;
     public string? IconId => Item.IconId;
-    public NoteTypeUserPrivileges UserPrivileges => Item.UserPrivileges;
+    public NoteTypeUserPrivileges? UserPrivileges => Item.UserPrivileges;
 
     public AddNoteProperties CreateAddNoteProperties()
     {

@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Text.Json.Serialization;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 
 public abstract class EditableKeywordGroup : KeywordGroup, IModifiableKeywordRecord
@@ -65,7 +65,7 @@ public abstract class EditableKeywordGroup : KeywordGroup, IModifiableKeywordRec
         return new EditableKeyword(Module, key, _keywordGroup);
     }
 }
-public abstract class KeywordGroup : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, KeywordGroupModel>, IKeywordGroup
+public abstract class KeywordGroup : OnBaseItemService<OnBaseCore, KeywordGroupModel>, IKeywordGroup
 {
     private KeywordTypeGroup? _keyTypeGroup { get; set; }
     internal KeywordGroup(OnBaseCore core, KeywordGroupModel group) : base(core, group)
@@ -91,6 +91,7 @@ public abstract class KeywordGroup : OnBaseItemService<IOnBaseDocumentAPI, OnBas
         GroupType = group.GroupType;
     }   
     public virtual KeywordTypeGroupType GroupType { get; }
+    public override string? TypeId => Item.Id;
     [JsonIgnore]
     public virtual KeywordTypeGroup? KeywordTypeGroup
     {

@@ -1,25 +1,27 @@
-﻿
+﻿using HyRest.Utilities;
 
-using HyRest.Utilities;
+namespace HyRest.OnBase.Core;
 
-namespace HyRest.DocumentManagement;
-
-public class NoteTypes : OnBaseItemTypeCollectionService<IOnBaseDocumentAPI, OnBaseCore, NoteType>
+public class NoteTypes : OnBaseItemTypeCollectionService<OnBaseCore, NoteType>
 {
     internal NoteTypes(OnBaseCore core) : base(core)
     {
         
     }
-    protected override async Task GetCollection()
+    protected override async Task GetCollection(CancellationToken token = default)
     {
-        var col = await Module.Run(Api.GetNoteTypeCollection(null, Options.DefaultLanguage));
-        if (col != null)
-        {
-            col.Items
+        var col = await Module.Service.GetNoteTypes(token);
+        col?.Items
                 .Select(i => new NoteType(Module, i))
                 .ToList()
                 .ForEach(i => Add(i));
-        }
+    }
+    protected override async Task<NoteType?> GetOne(string id, CancellationToken token = default)
+    {
+        var model = await Module.Service.GetNoteType(id, token);
+        if (model != null)
+            return new NoteType(Module, model);
+        return null;
     }
     public override string? ToJson()
         => JsonUtility.Serialize(this);

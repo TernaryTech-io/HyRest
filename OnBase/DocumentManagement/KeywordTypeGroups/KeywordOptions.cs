@@ -1,8 +1,8 @@
 ﻿using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
-public class KeywordOptions : OnBaseRestService<IOnBaseDocumentAPI>
+public class KeywordOptions : OnBaseRestService
 {
     private readonly KeywordOptionsModel _model;
     private OnBaseCore _core => (OnBaseCore)base.Module;

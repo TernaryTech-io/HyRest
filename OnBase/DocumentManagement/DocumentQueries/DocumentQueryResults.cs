@@ -1,7 +1,8 @@
 ﻿using Ternary.DataConversions.Extensions;
 using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
+
 
 public class DocumentResult
 {
@@ -23,13 +24,13 @@ public class DocumentResult
         get
         {
             if (_document == null)
-                GetDocument().Wait();
+                GetDocument();
             return _document;
         }
     }
-    private async Task GetDocument()
+    private void GetDocument()
     {
-        _document = await _core.GetDocumentByIdAsync(_id);
+        _document = _core.GetDocumentById(_id);
     }
     public IReadOnlyCollection<QueryDisplayColumn> DisplayColumns { get => _displayColumns.AsReadOnly(); }
     public string? ToJson()

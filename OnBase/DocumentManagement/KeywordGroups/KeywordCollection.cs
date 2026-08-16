@@ -1,12 +1,10 @@
 ﻿using System.Text.Json.Serialization;
 using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
-public sealed class KeywordCollection : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, KeywordCollectionModel>
+public sealed class KeywordCollection : OnBaseBaseService<OnBaseCore, KeywordCollectionModel>
 {
-    [JsonIgnore]
-    public override long Id => base.Id;
     private List<IKeywordGroup> _groups => Item.Items.Select(g => IKeywordGroup.Create(Module, g)).ToList();
     private StandAloneKeywords _standAloneKeywords => _groups.Where(g => g is StandAloneKeywords)
         .Select(g => (StandAloneKeywords)g).FirstOrDefault() ?? new StandAloneKeywords(Module, new KeywordGroupModel());

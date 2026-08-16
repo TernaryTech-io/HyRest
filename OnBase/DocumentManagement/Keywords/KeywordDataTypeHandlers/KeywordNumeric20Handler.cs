@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using Ternary.DataConversions;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public class KeywordNumeric20Provider: KeywordDataTypeProvider
 {

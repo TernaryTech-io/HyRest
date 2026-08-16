@@ -1,12 +1,12 @@
-using HyRest.Administration;
+using HyRest.OnBase.ApiServices;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 /// <summary>
 /// The Document Management API
 /// </summary>
-public sealed partial class OnBaseCore : OnBaseModule<IOnBaseDocumentAPI>, IOnBaseCore
-{    
+public sealed partial class OnBaseCore : OnBaseModule<OnBaseCoreService>, IOnBaseCore
+{
     public AutoFillKeywordSets AutoFillKeywordSets { get; }
     public CustomQueries CustomQueries { get; set; }
     public CurrencyFormats CurrencyFormats { get; set; }
@@ -16,8 +16,8 @@ public sealed partial class OnBaseCore : OnBaseModule<IOnBaseDocumentAPI>, IOnBa
     public KeywordTypeGroups KeywordTypeGroups { get; }
     public KeywordTypes KeywordTypes { get; }
     public NoteTypes NoteTypes { get; }
-    internal OnBaseCore(IOnBaseApp app) 
-        : base(app)
+    internal OnBaseCore(OnBaseApp app, OnBaseCoreService service) 
+        : base(app, service)
     {       
         AutoFillKeywordSets = new AutoFillKeywordSets(this);
         CustomQueries = new CustomQueries(this);
@@ -36,33 +36,25 @@ public sealed partial class OnBaseCore : OnBaseModule<IOnBaseDocumentAPI>, IOnBa
     public Document? GetDocumentById(string id)
     {
         var docTask = GetDocumentByIdAsync(id);
-        docTask.Wait();
-        if (docTask.IsCompletedSuccessfully)
+        if (docTask.Wait(App.RequestTimeOut) && docTask.IsCompletedSuccessfully)
             return docTask.Result;
         else
             return null;
     }
-    public async Task<Document?> GetDocumentByIdAsync(string id)
+    public async Task<Document?> GetDocumentByIdAsync(string id, CancellationToken token = default)
     {
-        var doc = await Run(Api<IOnBaseDocumentAPI>().GetDocumentById(id));
+        var doc = await Service.GetDocumentById(id,token);
         if (doc != null)
             return new Document(this, doc);
         else
             return null;
     }
-
     public TQuery CreateDocumentQueryBuilder<TQuery>() where TQuery : class, IDocumentQueryBuilder
     {
         var builder = (TQuery?)Activator.CreateInstance(typeof(TQuery), [this]);
         if (builder != null)
             return builder;
         else throw new Exception($"Could not create a Document Query from type {typeof(TQuery).Name}");
-    }
-    
-    internal static OnBaseCore Create(IOnBaseApp app)
-    {        
-        return new OnBaseCore(app);
-    }
-    
+    }  
 }
 

@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
 using HyRest.FileTypeMapping;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public partial class FileResponse : IDisposable
 {

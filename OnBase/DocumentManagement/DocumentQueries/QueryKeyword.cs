@@ -1,9 +1,9 @@
 ﻿using System.Text.Json.Serialization;
 using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
-public class QueryKeyword : OnBaseRestService<IOnBaseDocumentAPI>
+public class QueryKeyword : OnBaseRestService
 {
     private OnBaseCore _core => (OnBaseCore)base.Module;
     private KeywordType? _keywordType { get; set; }
@@ -40,10 +40,10 @@ public class QueryKeyword : OnBaseRestService<IOnBaseDocumentAPI>
             return;
         if (long.TryParse(value, out long result))
         {
-            _keywordType = _core.KeywordTypes.Find(result);
+            _keywordType = _core.KeywordTypes[result];
         }
         else
-            _keywordType = _core.KeywordTypes.Find(value);
+            _keywordType = _core.KeywordTypes[value];
     }
     internal QueryKeywordModel GetModel()
     {

@@ -1,9 +1,9 @@
 ﻿using Ternary.DataConversions.Extensions;
 using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
-public class Rendition : OnBaseItemService<IOnBaseDocumentAPI, OnBaseCore, RenditionModel>
+public class Rendition : OnBaseItemService<OnBaseCore, RenditionModel>
 {
     private readonly RevisionModel _revision;
     private FileType? _fileType { get; set; }

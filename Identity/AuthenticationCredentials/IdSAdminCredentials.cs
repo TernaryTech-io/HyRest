@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace HyRest.Identity.Credentials;
+namespace HyRest;
 
 /// <summary>
 /// Credential set for authenticating to the Identity Server Admin API

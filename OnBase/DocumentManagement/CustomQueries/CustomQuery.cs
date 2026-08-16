@@ -1,9 +1,8 @@
 ﻿using HyRest.Utilities;
-using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
-namespace HyRest.DocumentManagement;
-public sealed class CustomQuery : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore, CustomQueryModel>
+namespace HyRest.OnBase.Core;
+public sealed class CustomQuery : OnBaseItemTypeService<OnBaseCore, CustomQueryModel>
 {
     private List<KeywordType> _keywordTypes { get; set; } = [];
     internal CustomQuery(OnBaseCore core, CustomQueryModel item) : base(core, item){}
@@ -16,7 +15,7 @@ public sealed class CustomQuery : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBa
         get
         {
             if (_keywordTypes == null || _keywordTypes.Count == 0)
-                PopulateKeywordTypes().Wait();
+                PopulateKeywordTypes().Wait(Module.App.RequestTimeOut);
             return _keywordTypes ?? [];
         }
     }
@@ -24,15 +23,12 @@ public sealed class CustomQuery : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBa
     {
         if (Item.Id != null)
         {
-            var col = await Module.Run(Api.GetKeywordTypeCollectionForCustomQuery(Item.Id));
-            if (col != null)
-                col.Items
-                .Select(i => Module.KeywordTypes.Find(i.Id))
+            var col = await Module.Service.GetKeywordsForCustomQuery(Item.Id);
+            col?.Items
+                .Select(i => Module.KeywordTypes[i.Id])
                 .ToList()
                 .ForEach(i => _keywordTypes.Add(i));
         }
-        else throw new Exception("The custom query id is missing.");
-        
     }
     public override string? ToJson()
         => JsonUtility.Serialize(this);

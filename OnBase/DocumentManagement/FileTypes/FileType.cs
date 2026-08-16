@@ -1,9 +1,9 @@
 ﻿using HyRest.Utilities;
 using HyRest.FileTypeMapping;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
-public sealed class FileType : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore, FileTypeModel>
+public sealed class FileType : OnBaseItemTypeService<OnBaseCore, FileTypeModel>
 {   
     public FileType(OnBaseCore core, FileTypeModel fileType) : base(core, fileType)
     {

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace HyRest.Identity.Credentials;
+namespace HyRest;
 
 public class AuthenticationCredentials : IAuthenticationCredentials
 {

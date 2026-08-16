@@ -1,27 +1,27 @@
 ﻿using HyRest.Utilities;
 using System.Text.Json.Serialization;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
-public sealed class DocumentTypeGroup : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore, DocumentTypeGroupModel>
+public sealed class DocumentTypeGroup : OnBaseItemTypeService<OnBaseCore, DocumentTypeGroupModel>
 {
     private List<DocumentType> _documentTypes {  get; set; }
     public DocumentTypeGroup(OnBaseCore core, DocumentTypeGroupModel item) : base(core, item)
     {
     }
     [JsonIgnore] 
-    public IReadOnlyCollection<DocumentType> DocumentTypes
+    public IReadOnlyList<DocumentType> DocumentTypes
     {
         get
         {
             if(_documentTypes == null)
-                PopulateDocumentTypes().Wait();
+                PopulateDocumentTypes().Wait(Module.App.RequestTimeOut);
             return _documentTypes;
         }
     }
     private async Task PopulateDocumentTypes()
     {
-        var col = await Module.Run(Api.GetDocumentTypeCollectionForDocumentTypeGroup(Item.Id));
+        var col = await Module.Service.GetDocumentTypesForDocumentTypeGroup(Item.Id);
         if(col != null & col.Items.Count > 0)
         {
             List<DocumentType> list = [];

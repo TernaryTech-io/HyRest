@@ -1,14 +1,14 @@
-﻿using System.Text.Json.Serialization;
-using Ternary.DataConversions.Extensions;
-using HyRest.Utilities;
+﻿using HyRest.Utilities;
+using System.Text.Json.Serialization;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
 public class StandAloneKeywordTypes : KeywordTypeGroup
 {
-    internal StandAloneKeywordTypes(OnBaseCore core, List<KeywordType> keywordTypes) : base(core, keywordTypes)
+    internal StandAloneKeywordTypes(OnBaseCore core, KeywordTypeGroupModel item) : base(core, item)
     {
-
+        item.KeywordTypes?.ToList()
+            .ForEach(k => Add(new KeywordType(Module, k)));
     }    
     public override string? ToJson()
         => JsonUtility.Serialize(this);
@@ -32,7 +32,7 @@ public class SingleInstanceKeywordTypeGroup : KeywordTypeGroup
         => JsonUtility.Serialize(this);
 }
 
-public abstract class KeywordTypeGroup: OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore, KeywordTypeGroupModel>, IKeywordTypeGroup
+public abstract class KeywordTypeGroup: OnBaseItemTypeService<OnBaseCore, KeywordTypeGroupModel>, IKeywordTypeGroup
 {
     private List<KeywordType> _keywordTypes { get; set; } = [];
     private KeywordTypeGroupType _groupType { get; set; }
@@ -40,18 +40,17 @@ public abstract class KeywordTypeGroup: OnBaseItemTypeService<IOnBaseDocumentAPI
     {
         if (item.StorageType == KeywordTypeGroupStorageType.MultiInstance)
             _groupType = KeywordTypeGroupType.MultiInstance;
-        else
+        else if (item.StorageType == KeywordTypeGroupStorageType.SingleInstance)
             _groupType = KeywordTypeGroupType.SingleInstance;
+        else
+            _groupType = KeywordTypeGroupType.StandAlone;
     }
-    internal KeywordTypeGroup(OnBaseCore core, List<KeywordType> keywordTypes) : base(core, null)
-    {        
-        if (keywordTypes != null)
-            _keywordTypes = keywordTypes;
-        _groupType = KeywordTypeGroupType.StandAlone;
-    }
-    public long Id => Item != null ? Item.Id.ConvertTo<long>() : -1;
-    public string? Name => Item != null ? Item.Name : null;
-    public string? SystemName => Item != null ? Item.SystemName : null;
+    //internal KeywordTypeGroup(OnBaseCore core, List<KeywordType> keywordTypes) : base(core, null)
+    //{        
+    //    if (keywordTypes != null)
+    //        _keywordTypes = keywordTypes;
+    //    _groupType = KeywordTypeGroupType.StandAlone;
+    //}
     [HyRestConverter<JsonStringEnumConverter>]
     public KeywordTypeGroupType StorageType => _groupType;  
     public KeywordType? this[long id] => _keywordTypes.FirstOrDefault(i => i.Id == id);
@@ -63,7 +62,7 @@ public abstract class KeywordTypeGroup: OnBaseItemTypeService<IOnBaseDocumentAPI
         get
         {
             if (StorageType != KeywordTypeGroupType.StandAlone)
-                PopulateKeywordTypes().Wait();
+                PopulateKeywordTypes().Wait(Module.App.RequestTimeOut);
             return _keywordTypes;
         }
     }
@@ -71,7 +70,7 @@ public abstract class KeywordTypeGroup: OnBaseItemTypeService<IOnBaseDocumentAPI
 
     private async Task PopulateKeywordTypes()
     {
-        var col = await Module.Run(Api.GetKeywordTypeCollectionForKeywordTypeGroup(Item.Id));
+        var col = await Module.Service.GetKeywordTypesForKeywordTypeGroup(Item.Id);
         if (col != null)
             col.Items
             .Select(i => Module.KeywordTypes.Find(i.Id))

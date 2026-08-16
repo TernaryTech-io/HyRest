@@ -1,8 +1,8 @@
 ﻿using HyRest.Utilities;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
-public sealed class DocumentLocks : OnBaseItemCollectionService<IOnBaseDocumentAPI, OnBaseCore, DocumentLock>
+public sealed class DocumentLocks : OnBaseBaseCollectionService<OnBaseCore, DocumentLock>
 {
     private readonly DocumentModel _doc;
     internal DocumentLocks(OnBaseCore core, DocumentModel doc) : base(core)
@@ -10,17 +10,17 @@ public sealed class DocumentLocks : OnBaseItemCollectionService<IOnBaseDocumentA
         _doc = doc;
     }
     public void CreateDocumentLock(LockType lockType)
-        => CreateDocumentLockAsync(lockType).Wait();
-    public Task CreateDocumentLockAsync(LockType lockType)
-        => Module.Run(Api.PostDocumentLocks(_doc.Id, lockType));
+        => CreateDocumentLockAsync(lockType).Wait(Module.App.RequestTimeOut);
+    public Task CreateDocumentLockAsync(LockType lockType, CancellationToken token = default)
+        => Module.Service.CreateDocumentLock(_doc.Id, lockType, token);
     public void DeleteDocumentLock(LockType lockType)
-        => DeleteDocumentLockAsync(lockType).Wait();
-    public Task DeleteDocumentLockAsync(LockType lockType)
-        => Module.Run(Api.DeleteDocumentLock(_doc.Id, lockType));
-    protected override async Task GetCollection()
+        => DeleteDocumentLockAsync(lockType).Wait(Module.App.RequestTimeOut);
+    public Task DeleteDocumentLockAsync(LockType lockType, CancellationToken token = default)
+        => Module.Service.DeleteDocumentLock(_doc.Id, lockType, token);
+    public async Task GetLocks(CancellationToken token = default)
     {
-        var coll = await Module.Run(Api.GetDocumentLocks(_doc.Id));
-        coll.Items
+        var col = await Module.Service.GetDocumentLocks(_doc.Id.ToString(), token);
+        col?.Items
             .Select(l => new DocumentLock(Module, _doc, l))
             .ToList()
             .ForEach(l => Add(l));

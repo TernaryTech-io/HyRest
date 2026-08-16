@@ -1,9 +1,9 @@
 ﻿using HyRest.Utilities;
 using System.Text.Json.Serialization;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
-public sealed class AutoFillKeywordSet : OnBaseItemTypeService<IOnBaseDocumentAPI,OnBaseCore,AutoFillKeywordSetModel>
+public sealed class AutoFillKeywordSet : OnBaseItemTypeService<OnBaseCore,AutoFillKeywordSetModel>
 {
 
     private KeywordType? _primaryKeywordType { get; set; }   
@@ -14,7 +14,7 @@ public sealed class AutoFillKeywordSet : OnBaseItemTypeService<IOnBaseDocumentAP
         get
         {
             if (_primaryKeywordType == null)
-                PopulatePrimaryKeywordType().Wait();
+                PopulatePrimaryKeywordType().Wait(Module.App.RequestTimeOut);
             return _primaryKeywordType;
         }
     }
@@ -24,7 +24,7 @@ public sealed class AutoFillKeywordSet : OnBaseItemTypeService<IOnBaseDocumentAP
         get
         {
             if (_keywordTypes == null || _keywordTypes.Count == 0)
-                PopulateKeywordTypes().Wait();
+                PopulateKeywordTypes().Wait(Module.App.RequestTimeOut);
             return _keywordTypes ?? [];
         }
     }
@@ -33,20 +33,29 @@ public sealed class AutoFillKeywordSet : OnBaseItemTypeService<IOnBaseDocumentAP
     {
         if(Item.PrimaryKeywordTypeId != null)
         {
-            var item = await Module.Run(Api.GetKeywordTypeById(Item.PrimaryKeywordTypeId, Options.DefaultLanguage));
+            var item = await Module.Service.GetKeywordType(Item.PrimaryKeywordTypeId);
             if (item != null)
                 _primaryKeywordType = new KeywordType(Module, item);
         }        
     }
     private async Task PopulateKeywordTypes()
     {
-        var col = await Module.Run(Api.GetKeywordTypeCollectionForAutofillKeywordSet(Item.Id));
-        if(col != null)
-            col.Items
+        var col = await Module.Service.GetAutoFillKeywordSetKeywordTypes(Item.Id);
+        col?.Items
             .Select(i => new KeywordType(Module, i))
             .ToList()
             .ForEach(i => _keywordTypes.Add(i));
     }
+    //public async Task<IReadOnlyCollection<Keyword>> GetAutoFillData(string primaryValue, CancellationToken token = default)
+    //{
+    //    var data = await Module.Run(Module.Api.GetKeywordDataCollectionForAutofillKeywordSet(Item.Id, primaryValue, Module.App.ClientOptions.DefaultLanguage), token);
+    //    List<Keyword> results = [];
+    //    foreach(var item in data.Items)
+    //    {
+    //        item.
+    //    }
+
+    //}
     public override string? ToJson()
         => JsonUtility.Serialize(this);
 }

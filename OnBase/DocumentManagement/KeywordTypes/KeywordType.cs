@@ -1,10 +1,12 @@
 ﻿using System.Globalization;
 using Ternary.DataConversions.Providers;
 using HyRest.Utilities;
+using System.Text.Json.Serialization;
+using Ternary.DataConversions.Extensions;
 
-namespace HyRest.DocumentManagement;
+namespace HyRest.OnBase.Core;
 
-public class KeywordType : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore, KeywordTypeModel>
+public class KeywordType : OnBaseItemTypeService<OnBaseCore, KeywordTypeModel>
 {
     private CurrencyFormat? _currencyFormat { get; set; }
     internal CultureInfo Culture => new CultureInfo(Module.App.ClientOptions.DefaultLanguage);
@@ -17,26 +19,18 @@ public class KeywordType : OnBaseItemTypeService<IOnBaseDocumentAPI, OnBaseCore,
     public bool UsedForRetrieval => Item.UsedForRetrieval;
     public bool Invisible => Item.Invisible;
     public AlphanumericSettings? AlphanumericSettings => Item.AlphanumericSettings;
+    public string? CurrencyFormatId => Item.CurrencyFormatId;
     public CurrencyFormat? CurrencyFormat
     {
         get
         {
-            if (_currencyFormat == null)
-                PopulateCurrencyFormat().Wait();
+            if (_currencyFormat == null && Item.CurrencyFormatId != null)
+                _currencyFormat = Module.CurrencyFormats[Item.CurrencyFormatId];
             return _currencyFormat;
         }
     }
     public bool IsSecurityMasked => Item.IsSecurityMasked;
     public KeywordTypeMaskSettings? MaskSettings => Item.MaskSettings;
-    private async Task PopulateCurrencyFormat()
-    {
-        if (Item.CurrencyFormatId != null)
-        {
-            var item = await Module.Run(Api.GetCurrencyFormatById(Item.CurrencyFormatId));
-            if (item != null)
-                _currencyFormat = new CurrencyFormat(Module, item);
-        }
-    }
     public IDataTypeConversionProvider CreateKeywordDataTypeHandler()
         => DataType.GetProvider(this);
     public override string? ToJson()

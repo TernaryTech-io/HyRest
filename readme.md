@@ -68,7 +68,7 @@ Here's a complete example to get you up and running in minutes:
 using Microsoft.Extensions.Logging;
 using HyRest;
 using HyRest.Abstractions;
-using HyRest.Identity.Credentials;
+
 
 // Configure authentication
 var creds = AuthenticationCredentials.CreateUserCredentials(
