@@ -38,7 +38,10 @@ public class OnBaseAppBuilder
         ServiceCollection = serviceCollection ?? new ServiceCollection();
         _options = options;        
         if(_authCredentials != null)
-            HylandClientFactory.RegisterBasicAuthServices(ServiceCollection, _options, _authCredentials);        
+        {            
+            HylandClientFactory.RegisterBasicAuthServices(ServiceCollection, _options, _authCredentials);
+        }
+        ServiceCollection.AddSingleton<HylandClientFactory>();
     }
     public OnBaseAppBuilder WithCredentials(IAuthenticationCredentials credentials)
     {
@@ -58,7 +61,7 @@ public class OnBaseAppBuilder
                 LocalCacheExpiration = TimeSpan.FromMinutes(60),
             };
         });
-        sc.AddSingleton<HylandClientFactory>();
+        
         sc.AddSingleton<OnBaseAppCache>();
         sc.AddSingleton<OnBaseSessionService>();
         sc.AddSingleton<OnBaseCoreService>();

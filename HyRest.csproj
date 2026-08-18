@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ApplicationIcon>Ternary-teal.ico</ApplicationIcon>
     <PackageIcon>Ternary-teal.png</PackageIcon>
-    <VersionPrefix>10.0.11</VersionPrefix>
+    <VersionPrefix>10.0.12</VersionPrefix>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Ternary-teal.ico" />
