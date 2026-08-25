@@ -28,7 +28,7 @@ public partial class OnBaseAdministrationService : OnBaseService<IOnBaseAdminist
     public async Task<UserModel?> GetUser(string identifier, CancellationToken token = default)
     {
         UserModel? item = null;
-        if (Cache.TryGetValue(identifier, out item))
+        if (Cache.TryGetValue(identifier, out item, CachePrefix))
             return item;
 
         if (long.TryParse(identifier, out long id))

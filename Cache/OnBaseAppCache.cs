@@ -1,14 +1,17 @@
 ﻿using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Logging;
 
 namespace HyRest.Cache;
 
 public class OnBaseAppCache : IOnBaseAppCache
     
 {
-    private HybridCache _cache;
-    public OnBaseAppCache(HybridCache cache, string? prefix = null)
+    private readonly ILogger _logger;
+    private readonly HybridCache _cache;
+    public OnBaseAppCache(HybridCache cache, ILogger<OnBaseAppCache> logger, string? prefix = null)
     {
         _cache = cache;
+        _logger = logger;
     }
     public async Task<T?> GetOrCreateAsync<T>(string id, Func<CancellationToken, ValueTask<T>> factory, CancellationToken ct = default, string? prefix = null) 
         where T : class, IOnBaseCacheable
@@ -24,6 +27,7 @@ public class OnBaseAppCache : IOnBaseAppCache
         where T : class, IOnBaseCacheable
     {
         var idKey = CreateKey(item, prefix);
+        _logger.LogTrace($"Setting cache with key {idKey}");
         await _cache.SetAsync(idKey, item, null, null, ct);
         if (item.Name != null)
         {
@@ -38,9 +42,10 @@ public class OnBaseAppCache : IOnBaseAppCache
     }
     public async Task<(bool,T?)> TryGetValueAsync<T>(string key, CancellationToken ct = default, string? prefix = null)
         where T : class, IOnBaseCacheable
-    {
-        var result = await _cache.GetOrCreateAsync<object,object>(
-            CreateKey<T>(key, prefix),
+    {        
+        var idkey = CreateKey<T>(key, prefix);
+        var result = await _cache.GetOrCreateAsync<T,T>(
+            idkey,
             null!,
             DoNothing,
             ReadOnlyOptions,
@@ -66,8 +71,9 @@ public class OnBaseAppCache : IOnBaseAppCache
     {
         Flags = HybridCacheEntryFlags.DisableUnderlyingData | HybridCacheEntryFlags.DisableLocalCacheWrite | HybridCacheEntryFlags.DisableDistributedCacheWrite
     };
-    private async ValueTask<object> DoNothing(object _, CancellationToken __)
+    private async ValueTask<T> DoNothing<T>(T _, CancellationToken __)
+        where T : class, IOnBaseCacheable
     {
-        return await ValueTask.FromResult<object>(null!);
+        return await ValueTask.FromResult<T>(null!);
     }
 }

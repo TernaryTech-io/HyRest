@@ -7,7 +7,7 @@ public struct CacheKey
     public string IdOf { get; set; }
     public override string ToString()
     {
-        return $"{Prefix ?? Prefix + "-"}{TypeOf}-{IdOf}";
+        return $"{(Prefix != null ? Prefix + "-" : string.Empty)}{TypeOf}-{IdOf}";
     }
     public static CacheKey Create<T>(T item, string? prefix = null)
         where T : class, IOnBaseCacheable

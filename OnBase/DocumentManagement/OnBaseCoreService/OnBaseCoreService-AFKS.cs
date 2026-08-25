@@ -26,7 +26,7 @@ public partial class OnBaseCoreService : OnBaseService<IOnBaseDocumentAPI>, IOnB
     public async Task<AutoFillKeywordSetModel?> GetAutoFillKeywordSet(string identifier, CancellationToken token = default)
     {
         AutoFillKeywordSetModel? item = null;
-        if(Cache.TryGetValue(identifier, out item))
+        if(Cache.TryGetValue(identifier, out item, CachePrefix))
             return item;
 
         if (long.TryParse(identifier, out long id))

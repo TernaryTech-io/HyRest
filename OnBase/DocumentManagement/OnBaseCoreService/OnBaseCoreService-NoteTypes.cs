@@ -23,7 +23,7 @@ public partial class OnBaseCoreService : OnBaseService<IOnBaseDocumentAPI>, IOnB
     public async Task<NoteTypeModel?> GetNoteType(string identifier, CancellationToken token = default)
     {
         NoteTypeModel? item = null;
-        if (Cache.TryGetValue(identifier, out item))
+        if (Cache.TryGetValue(identifier, out item, CachePrefix))
             return item;
 
         if (long.TryParse(identifier, out long id))
