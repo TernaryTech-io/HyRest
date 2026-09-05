@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel;
+using System.Text.Json.Serialization;
 using Ternary.DataConversions.Extensions;
 
 namespace HyRest.OnBase.WorkView;
@@ -25,7 +26,7 @@ public class Class : OnBaseItemTypeService<OnBaseWorkView, ClassModel>
                 GetClassAttributes().Wait(Module.App.RequestTimeOut);
             return _attributes.AsReadOnly();
         }
-    }
+    }    
     public ClassAccessRights AccessRights
     {
         get

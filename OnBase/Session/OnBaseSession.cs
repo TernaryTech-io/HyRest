@@ -7,10 +7,10 @@ namespace HyRest.OnBase.Session;
 
 public sealed partial class OnBaseSession : OnBaseModule<OnBaseSessionService>, IOnBaseSession
 {
-    private readonly HylandApiClient _apiClient;
+    private readonly OnBaseApiClient _apiClient;
     internal OnBaseSession(OnBaseApp app, OnBaseSessionService service) : base(app, service)
     {
-        _apiClient = (HylandApiClient)app.ClientFactory.ApiClient;
+        _apiClient = (OnBaseApiClient)app.ClientFactory.ApiClient;
     }
     /// <summary>
     /// Initiates the OnBase session and captures the session cookie by calling

@@ -3,15 +3,15 @@ using System.Net;
 
 namespace HyRest;
 
-public class HylandApiClient : IHylandApiClient
+public class OnBaseApiClient : IOnBaseApiClient
 {
     private readonly HttpClient _httpClient;
     private CookieContainer _cookieContainer;
     private readonly IOnBaseSessionAPI _api;
-    public HylandApiClient(HttpClient httpClient)
+    public OnBaseApiClient(HttpClient httpClient)
     {
         _httpClient = httpClient;
-        _api = IHylandRestAPI.Get<IOnBaseSessionAPI>(_httpClient, HylandClientFactory.Settings);
+        _api = IHylandRestAPI.Get<IOnBaseSessionAPI>(_httpClient, OnBaseClientFactory.Settings);
     }
     public HttpClient HttpClient => _httpClient;
     public CookieContainer CookieContainer => _cookieContainer;
@@ -24,7 +24,7 @@ public class HylandApiClient : IHylandApiClient
         else
             await _api.HeartbeatAsync();
     }
-    public IHylandApiClient WithCookieContainer(CookieContainer CookieContainer)
+    public IOnBaseApiClient WithCookieContainer(CookieContainer CookieContainer)
     {
         _cookieContainer = CookieContainer;
         return this;

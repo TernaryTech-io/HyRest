@@ -12,7 +12,7 @@ public class OnBaseAppBuilder
 {
     public IServiceCollection ServiceCollection { get; set; }
     internal IServiceProvider Services { get; set; }
-    private HylandClientFactory _clientFactory { get; set; }
+    private OnBaseClientFactory _clientFactory { get; set; }
     private IAuthenticationCredentials? _authCredentials { get; set; }
     private HylandClientOptions _options { get; set; }
     public OnBaseApp Build()
@@ -39,14 +39,14 @@ public class OnBaseAppBuilder
         _options = options;        
         if(_authCredentials != null)
         {            
-            HylandClientFactory.RegisterBasicAuthServices(ServiceCollection, _options, _authCredentials);
+            OnBaseClientFactory.RegisterBasicAuthServices(ServiceCollection, _options, _authCredentials);
         }
-        ServiceCollection.AddSingleton<HylandClientFactory>();
+        ServiceCollection.AddSingleton<OnBaseClientFactory>();
     }
     public OnBaseAppBuilder WithCredentials(IAuthenticationCredentials credentials)
     {
         _authCredentials = credentials;
-        HylandClientFactory.RegisterBasicAuthServices(ServiceCollection, _options, _authCredentials);
+        OnBaseClientFactory.RegisterBasicAuthServices(ServiceCollection, _options, _authCredentials);
         return this;
     }
     public static void RegisterAppServices<T>(IServiceCollection sc, HylandClientOptions options)

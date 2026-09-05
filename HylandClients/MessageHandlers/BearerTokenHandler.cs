@@ -9,6 +9,12 @@ public sealed class BearerTokenHandler : DelegatingHandler
 {
     private readonly IHylandAuthClient _authClient;
     private readonly HylandClientOptions _options;
+    public BearerTokenHandler(HylandCredentialAuthClient authClient, IAuthenticationCredentials creds, HylandClientOptions options)
+        : base()
+    {
+        _authClient = authClient.WithCredentials(creds);
+        _options = options;
+    }
     public BearerTokenHandler(HylandBasicAuthClient authClient, IAuthenticationCredentials creds, HylandClientOptions options)
         : base()
     {
