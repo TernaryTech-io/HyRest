@@ -9,7 +9,7 @@ public class HylandBasicAuthClient : HylandAuthClient
     /// <param name="httpClient"></param>
     public HylandBasicAuthClient(HttpClient httpClient) : base(httpClient)
     {        
-        _api = IHylandRestAPI.Get<IHylandIdentityServiceAuthenticationAPI>(_httpClient, HylandClientFactory.Settings);
+        _api = IHylandRestAPI.Get<IHylandIdentityServiceAuthenticationAPI>(_httpClient, OnBaseClientFactory.Settings);
     }
     public override HylandBasicAuthClient WithCredentials(IAuthenticationCredentials credentials)
     {
@@ -17,12 +17,11 @@ public class HylandBasicAuthClient : HylandAuthClient
             _credentials = basic;
         else throw new Exception("Basic User Credentials are required for this Authentication Client");
         return this;
-    }    
+    }
     /// <summary>
     /// Authenticate to the Hyland
     /// </summary>
-    /// <param name="credentials"></param>
-    /// <returns></returns>
+    /// <returns cref="IAuthenticationToken">IAuthenticationToken</returns>
     /// <exception cref="InvalidOperationException"></exception>
     public override async Task<IAuthenticationToken> AuthenticateAsync()
     {

@@ -19,7 +19,7 @@ public partial class OnBaseApp : OnBaseAppBase
     /// <param name="logger"></param>
     /// <param name="credentials"></param>
     /// <param name="options"></param>
-    public OnBaseApp(ILogger<OnBaseApp> logger, HylandClientFactory clientFactory, OnBaseSessionService sessionService, 
+    public OnBaseApp(ILogger<OnBaseApp> logger, OnBaseClientFactory clientFactory, OnBaseSessionService sessionService, 
         OnBaseAdministrationService administrationService, OnBaseCoreService coreService, OnBaseWorkViewService workViewService)
         : base(logger, clientFactory)
     {
@@ -34,7 +34,7 @@ public partial class OnBaseApp : OnBaseAppBase
         Init();
     }
     public override bool IsConnected => Session.IsActive;
-    public override HylandClientFactory ClientFactory => (HylandClientFactory)base.ClientFactory;
+    public override OnBaseClientFactory ClientFactory => (OnBaseClientFactory)base.ClientFactory;
     public override HylandClientOptions ClientOptions => (HylandClientOptions)base.ClientOptions;
     public User CurrentUser => _currentUser;
     public new OnBaseCore Core { get => (OnBaseCore)base.Core; set => base.Core = value;  }

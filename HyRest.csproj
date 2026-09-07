@@ -50,4 +50,8 @@
     <ProjectReference Include="..\HyRest.Abstractions\HyRest.Abstractions.csproj" />
     <ProjectReference Include="..\HyRest.FileTypeMapping\HyRest.FileTypeMapping.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Hyland\IdsAdministration\AdminUser\" />
+    <Folder Include="Hyland\IdsAdministration\Provider\" />
+  </ItemGroup>
 </Project>

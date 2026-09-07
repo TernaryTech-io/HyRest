@@ -1,19 +1,18 @@
-﻿using System.ComponentModel;
+﻿using HyRest.Hyland.IdentityAdministration;
+using _Scope = HyRest.Hyland.IdentityAdministration.Scope;
+using System.ComponentModel;
 
 namespace HyRest;
 
 /// <summary>
 /// Credential set for authenticating to the Identity Server Admin API
 /// </summary>
-public class IdSAdminCredentials : AuthenticationCredentials
+public class IdentityAdminCredentials : AuthenticationCredentials
 {
     [DefaultValue("client_credentials")]
-    internal new string GrantType { get => base.GrantType ?? "client_credentials"; set => base.GrantType = value; }
+    public override GrantType GrantType => GrantType.ClientCredentials;
     [DefaultValue("idpadmin")]
-    internal new string Scope { get => base.Scope ?? "idpadmin"; set => base.Scope = value; }    
-    public required new string ClientId { get => base.ClientId ?? string.Empty; set => base.ClientId = value; }
-    public required new string ClientSecret { get => base.ClientSecret ?? string.Empty; set => base.ClientSecret = value; }
-    private new string? Tenant { get => null; set => base.Tenant = null; }
-    private new string? Username { get => null; set => base.Username = null; }
-    private new string? Password { get => null; set => base.Password = null; }
+    public override List<_Scope> Scopes => [ _Scope.IdpAdmin ];  
+    public required override string? ClientId { get; set; }
+    public required override string? ClientSecret { get; set; }
 }

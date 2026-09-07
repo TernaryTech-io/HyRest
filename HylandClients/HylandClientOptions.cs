@@ -24,6 +24,10 @@ public class HylandClientOptions : IHylandClientOptions
     /// Sets the API server timeout in seconds.
     /// </summary>
     public int RequestTimeOut { get; set; } = 120;
+    /// <summary>
+    /// URequired for the HylandIdentity application and modules. Defaults to "OnBase"
+    /// </summary>
+    public string Tenant { get; set; } = "OnBase";
     public static HylandClientOptions Create(string idsBaseUrl, string apiBaseUrl,
         bool useQueryMetering = false, string defaultLanguage = "en-US", int requestTimeOut = 120) => new HylandClientOptions
         {

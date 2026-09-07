@@ -1,3 +1,4 @@
+using HyRest.Hyland.IdentityAdministration;
 using System.Text.Json.Serialization;
 
 namespace HyRest;
@@ -5,10 +6,10 @@ namespace HyRest;
 public class AuthenticationCredentials : IAuthenticationCredentials
 {
     [JsonPropertyName("grant_type")]
-    public virtual string? GrantType { get; set; }
+    public virtual GrantType GrantType { get; set; }
 
     [JsonPropertyName("scope")]
-    public virtual string? Scope {get; set;}
+    public virtual List<Scope> Scopes { get; set; } = [];
 
     [JsonPropertyName("client_id")]
     public virtual string? ClientId { get; set; }
@@ -27,10 +28,9 @@ public class AuthenticationCredentials : IAuthenticationCredentials
     public FormUrlEncodedContent ToBody()
     {
         var dict = new Dictionary<string, string>();
-        if (!string.IsNullOrEmpty(GrantType))
-            dict["grant_type"] = GrantType;
-        if (!string.IsNullOrEmpty(Scope))
-            dict["scope"] = Scope;
+        dict["grant_type"] = GrantType.Value;
+        if (Scopes.Count > 0)
+            dict["scope"] = string.Join(" ", Scopes.Select(s => s.Value));
         if (!string.IsNullOrEmpty(ClientId))
             dict["client_id"] = ClientId;
         if (!string.IsNullOrEmpty(ClientSecret))
@@ -59,9 +59,9 @@ public class AuthenticationCredentials : IAuthenticationCredentials
             ClientSecret = clientSecret
         };
     }
-    public static IdSAdminCredentials CreateIdsAdminCredentials(string clientId, string clientSecret)
+    public static IdentityAdminCredentials CreateIdentityAdminCredentials(string clientId, string clientSecret)
     {
-        return new IdSAdminCredentials
+        return new IdentityAdminCredentials
         {
             ClientId = clientId,
             ClientSecret = clientSecret
@@ -82,9 +82,7 @@ public class AuthenticationCredentials : IAuthenticationCredentials
             Username = username,
             Password = password,
             ClientId = clientId,
-            ClientSecret = clientSecret,
-            GrantType = "password",
-            Scope = "evolution"
+            ClientSecret = clientSecret
         };
     }
 }

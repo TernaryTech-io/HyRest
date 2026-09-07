@@ -5,7 +5,7 @@ namespace HyRest.OnBase.ApiServices;
 
 public class OnBaseSessionService : OnBaseService<IOnBaseSessionAPI>, IOnBaseSessionService
 {
-    public OnBaseSessionService(OnBaseAppCache cache, HylandClientFactory hylandClientFactory, ILogger<OnBaseSessionService> logger)
+    public OnBaseSessionService(OnBaseAppCache cache, OnBaseClientFactory hylandClientFactory, ILogger<OnBaseSessionService> logger)
         : base(cache, hylandClientFactory, logger)
     {
         

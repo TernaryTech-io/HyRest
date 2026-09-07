@@ -118,12 +118,7 @@ public struct KeywordDataType : IEquatable<KeywordDataType>
     }
 
     bool IEquatable<KeywordDataType>.Equals(KeywordDataType other)
-    {
-        if (other.DataType == this.DataType)
-            return true;
-        else
-            return false;
-    }
+        => Equals(other);
     public override bool Equals([NotNullWhen(true)] object? obj)
     {
         if (obj is KeywordDataType kdt)
@@ -138,6 +133,6 @@ public struct KeywordDataType : IEquatable<KeywordDataType>
     public override int GetHashCode() => HashCode.Combine(DataType, CommonType);
     public static bool operator ==(KeywordDataType left, KeywordDataType right) => left.Equals(right);
     public static bool operator !=(KeywordDataType left, KeywordDataType right) => !left.Equals(right);
-    public static bool operator ==(KeywordDataType left, object right) => left.Equals(right);
-    public static bool operator !=(KeywordDataType left, object right) => !left.Equals(right);
+    public static bool operator ==(KeywordDataType left, object? right) => left.Equals(right);
+    public static bool operator !=(KeywordDataType left, object? right) => !left.Equals(right);
 }

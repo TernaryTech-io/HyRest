@@ -7,7 +7,7 @@ namespace HyRest;
 
 public class OnBaseScopedApp : OnBaseApp, IDisposable, IAsyncDisposable
 {
-    public OnBaseScopedApp(ILogger<OnBaseScopedApp> logger, HylandClientFactory clientFactory, OnBaseSessionService sessionService,
+    public OnBaseScopedApp(ILogger<OnBaseScopedApp> logger, OnBaseClientFactory clientFactory, OnBaseSessionService sessionService,
         OnBaseAdministrationService administrationService, OnBaseCoreService coreService, OnBaseWorkViewService workViewService)
     : base(logger,clientFactory,sessionService,administrationService,coreService,workViewService)
     {        

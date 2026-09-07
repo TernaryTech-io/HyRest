@@ -31,7 +31,7 @@ public class HylandOpenIdAuthClient : HylandAuthClient
         {
             AccessToken = token.Token.AccessToken,
             ExpiresIn = (token.Token.Expiration - DateTimeOffset.Now).Seconds,
-            Scope = credentials.Scope,
+            Scope = string.Join(" ",credentials.Scopes.Select(s => s.Value)),
             TokenType = token.Token.AccessTokenType.HasValue ? token.Token.AccessTokenType.Value : string.Empty
         };
         return _token;
