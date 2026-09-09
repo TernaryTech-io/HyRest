@@ -7,7 +7,7 @@ namespace HyRest;
 /// </summary>
 public class BasicUserCredentials : AuthenticationCredentials
 {
-    public new GrantType GrantType => GrantType.ClientCredentials;
+    public new GrantType GrantType => GrantType.Password;
     public override List<Scope> Scopes => [Scope.Evolution];
     public required override string? Username { get; set; }
     public required override string? Password { get; set; }
