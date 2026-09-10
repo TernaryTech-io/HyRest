@@ -12,10 +12,10 @@ public class AuthenticationCredentials : IAuthenticationCredentials
     public virtual List<Scope> Scopes { get; set; } = [];
 
     [JsonPropertyName("client_id")]
-    public virtual string? ClientId { get; set; }
+    public string? ClientId { get; set; }
 
     [JsonPropertyName("client_secret")]
-    public virtual string? ClientSecret { get; set; }
+    public string? ClientSecret { get; set; }
 
     [JsonPropertyName("username")]
     public virtual string? Username { get; set; }
@@ -45,7 +45,7 @@ public class AuthenticationCredentials : IAuthenticationCredentials
     }
     public static SCIMCredentials CreateSCIMCredentials(string clientId, string clientSecret)
     {
-        return new SCIMCredentials
+        return new SCIMCredentials()
         {
             ClientId = clientId,
             ClientSecret = clientSecret
@@ -53,7 +53,7 @@ public class AuthenticationCredentials : IAuthenticationCredentials
     }
     public static ReadOnlySCIMCredentials CreateReadOnlySCIMCredentials(string clientId, string clientSecret)
     {
-        return new ReadOnlySCIMCredentials
+        return new ReadOnlySCIMCredentials()
         {
             ClientId = clientId,
             ClientSecret = clientSecret
@@ -61,7 +61,7 @@ public class AuthenticationCredentials : IAuthenticationCredentials
     }
     public static IdentityAdminCredentials CreateIdentityAdminCredentials(string clientId, string clientSecret)
     {
-        return new IdentityAdminCredentials
+        return new IdentityAdminCredentials()
         {
             ClientId = clientId,
             ClientSecret = clientSecret
@@ -77,7 +77,7 @@ public class AuthenticationCredentials : IAuthenticationCredentials
     /// <returns></returns>
     public static BasicUserCredentials CreateUserCredentials(string username, string password, string clientId, string clientSecret)
     {
-        return new BasicUserCredentials
+        return new BasicUserCredentials()
         {
             Username = username,
             Password = password,

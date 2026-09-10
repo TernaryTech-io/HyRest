@@ -108,7 +108,13 @@ public class DocumentArchiveProperties : OnBaseRestService, IAsyncDisposable, ID
         {
             foreach (var a in Files)
             {
-                var chunks = a.Bytes.Chunk(a.PartSize);
+                IEnumerable<byte[]> chunks;
+                //if(a.PartSize > a.Bytes.Length)
+                //{
+                //    chunks = a.Bytes.Chunk(a.Bytes.Length);
+                //}
+                //else
+                    chunks = a.Bytes.Chunk(a.PartSize);
                 int partNo = 0;
                 int partSuccess = 0;
                 foreach (var chunk in chunks)

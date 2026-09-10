@@ -4,7 +4,7 @@ using HyRest.Utilities;
 namespace HyRest.OnBase.Core;
 
 public class StandAloneKeywords : EditableKeywordGroup, IModifiableKeywordRecord
-{
+{    
     internal StandAloneKeywords(OnBaseCore core, KeywordGroupModel group) : base(core, group)
     {
         

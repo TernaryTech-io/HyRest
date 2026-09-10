@@ -5,7 +5,7 @@ namespace HyRest.OnBase.Core;
 
 public sealed class KeywordCollection : OnBaseBaseService<OnBaseCore, KeywordCollectionModel>
 {
-    private List<IKeywordGroup> _groups => Item.Items.Select(g => IKeywordGroup.Create(Module, g)).ToList();
+    private List<IKeywordGroup> _groups => SortMessyKeywords();
     private StandAloneKeywords _standAloneKeywords => _groups.Where(g => g is StandAloneKeywords)
         .Select(g => (StandAloneKeywords)g).FirstOrDefault() ?? new StandAloneKeywords(Module, new KeywordGroupModel());
     private SingleInstanceGroupCollection _singleInstanceGroups
@@ -17,7 +17,7 @@ public sealed class KeywordCollection : OnBaseBaseService<OnBaseCore, KeywordCol
     public KeywordCollection(OnBaseCore core, KeywordCollectionModel collection)
         : base(core, collection)
     {
-               
+        
     }
     public Guid KeywordGuid => Item.KeywordGuid != null ? Guid.Parse(Item.KeywordGuid) : Guid.Empty;
     public StandAloneKeywords StandAloneKeywords => _standAloneKeywords;
@@ -124,6 +124,30 @@ public sealed class KeywordCollection : OnBaseBaseService<OnBaseCore, KeywordCol
         => Item;
     public override string? ToJson()
         => JsonUtility.Serialize(this);
+    protected List<IKeywordGroup> SortMessyKeywords()
+    {
+        List<IKeywordGroup> groups = [];
+        var standalones = new KeywordGroupModel();
+        Item.Items
+            .Where(g => g.Id == null)
+            .ToList()
+            .ForEach(g =>
+            {
+                g.Keywords.ToList()
+                .ForEach(k =>
+                {
+                    standalones.Keywords.Add(k);
+                });
+            });
+        groups.Add(IKeywordGroup.Create(Module, standalones));
+        Item.Items.Where(g => g.Id != null)
+            .ToList()
+            .ForEach(g =>
+            {
+                groups.Add(IKeywordGroup.Create(Module, g));
+            });
+        return groups;
+    }
 }
 
 public enum KeywordTypeGroupType

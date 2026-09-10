@@ -64,7 +64,7 @@ public partial class FileResponse : IDisposable
 
         if (string.IsNullOrWhiteSpace(folderPath))
             folderPath = Path.GetTempPath();
-        var filePath = Path.Combine(folderPath, $"{fileName}{Extension ?? "undefined"}");
+        var filePath = Path.Combine(folderPath, $"{fileName}.{Extension ?? "undefined"}");
 
         var directory = Path.GetDirectoryName(filePath);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))

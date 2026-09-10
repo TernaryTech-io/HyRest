@@ -4,12 +4,12 @@ using System.ComponentModel;
 namespace HyRest;
 public class SCIMCredentials : AuthenticationCredentials
 {
-    public new GrantType GrantType => GrantType.ClientCredentials;
-    public override List<Scope> Scopes => [ Scope.IamUserCatalog, Scope.IamUserCatalogRead, Scope.IamUserCatalogWrite ];
+    public override GrantType GrantType { get; set; } =  GrantType.ClientCredentials;
+    public override List<Scope> Scopes { get; set; } = [ Scope.IamUserCatalog, Scope.IamUserCatalogRead, Scope.IamUserCatalogWrite ];
 
 }
 public class ReadOnlySCIMCredentials : AuthenticationCredentials
 {
-    public new GrantType GrantType => GrantType.ClientCredentials;
-    public override List<Scope> Scopes => [ Scope.IamUserCatalog, Scope.IamUserCatalogRead ];
+    public override GrantType GrantType { get; set; } = GrantType.ClientCredentials;
+    public override List<Scope> Scopes { get; set; } = [ Scope.IamUserCatalog, Scope.IamUserCatalogRead ];
 }
