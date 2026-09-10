@@ -12,7 +12,7 @@ public sealed class KeywordType : OnBaseItemTypeService<OnBaseCore, KeywordTypeM
     {
         
     }
-    public override string Name
+    public override string? Name
     {
         get
         {

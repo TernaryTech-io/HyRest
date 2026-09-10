@@ -12,8 +12,8 @@ public class Keyword : OnBaseItemService<OnBaseCore, KeywordModel>, IKeyword
         
     }
     public override string? TypeId => Item.Id;
-    public override string Name => KeywordType.Name;
-    public override string SystemName => KeywordType.SystemName;
+    public override string? Name => KeywordType.Name;
+    public override string? SystemName => KeywordType.SystemName;
     [HyRestConverter<DataTypeToStringConverter>]
     public KeywordDataType DataType => KeywordType.DataType;
     public object? this[int i] => Values.ElementAt(i).Value;
