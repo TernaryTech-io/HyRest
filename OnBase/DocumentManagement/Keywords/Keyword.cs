@@ -5,7 +5,9 @@ using HyRest.Utilities;
 namespace HyRest.OnBase.Core;
 public class Keyword : OnBaseItemService<OnBaseCore, KeywordModel>, IKeyword
 {
+    private object _lock = new object();
     protected IDataTypeConversionProvider _handler => KeywordType.CreateKeywordDataTypeHandler();
+    protected KeywordValueCollection _values => new KeywordValueCollection(Module, Item.Values, _handler);
     private KeywordType? _keyType { get; set; }    
     internal Keyword(OnBaseCore core, KeywordModel keyword) : base(core, keyword)
     {
@@ -31,7 +33,7 @@ public class Keyword : OnBaseItemService<OnBaseCore, KeywordModel>, IKeyword
     [JsonIgnore]
     public bool HasValues => Item.Values.Count() > 0;
     [HyRestConverter<KeywordValuesToStringConverter>]
-    public IReadOnlyCollection<KeywordValue> Values => Item.Values.Select(v => new KeywordValue(Module, v, _handler)).ToList().AsReadOnly();    
+    public virtual KeywordValueCollection Values => _values;      
     [JsonIgnore]
     public KeywordType KeywordType
     {
@@ -46,6 +48,7 @@ public class Keyword : OnBaseItemService<OnBaseCore, KeywordModel>, IKeyword
 
     public override string? ToJson()
         => JsonUtility.Serialize(this);
+    IReadOnlyCollection<KeywordValue> IKeyword.Values => Values;
 }
 public interface IKeyword : IOnBaseItemService
 {
