@@ -5,6 +5,7 @@ namespace HyRest.OnBase.Core;
 
 public sealed class KeywordCollection : OnBaseBaseService<OnBaseCore, KeywordCollectionModel>
 {
+    private object _lock = new object();
     private List<IKeywordGroup> _groups => SortMessyKeywords();
     private StandAloneKeywords _standAloneKeywords => _groups.Where(g => g is StandAloneKeywords)
         .Select(g => (StandAloneKeywords)g).FirstOrDefault() ?? new StandAloneKeywords(Module, new KeywordGroupModel());
@@ -42,30 +43,33 @@ public sealed class KeywordCollection : OnBaseBaseService<OnBaseCore, KeywordCol
     /// <returns></returns>
     public EditableMultiInstanceRecord CreateEditableMultiInstanceRecord(long typeId, string? instanceId = null)
     {
-        var group = Item.Items.Where(k => k.Id == typeId.ToString()).ToList();
-        if (group == null || group.Count == 0)
-            throw new Exception($"Could not locate the multi instance keyword groupd with id {typeId}");
-        if (instanceId != null)
+        lock(_lock)
         {
-            var inst = group.FirstOrDefault(g => g.InstanceId == instanceId);
-            if (inst == null)
-                throw new Exception($"The keyword group record with the instance id of: {instanceId}, was not found.");
-            return new EditableMultiInstanceRecord(Module, inst);
-        }        
-        var model = new KeywordGroupModel
-        {
-            Id = typeId.ToString()
-        };
-        foreach(var k in group.First().Keywords)
-        {
-            var kw = new KeywordModel
+            var group = Item.Items.Where(k => k.Id == typeId.ToString()).ToList();
+            if (group == null || group.Count == 0)
+                throw new Exception($"Could not locate the multi instance keyword groupd with id {typeId}");
+            if (instanceId != null)
             {
-                Id = k.Id
+                var inst = group.FirstOrDefault(g => g.InstanceId == instanceId);
+                if (inst == null)
+                    throw new Exception($"The keyword group record with the instance id of: {instanceId}, was not found.");
+                return new EditableMultiInstanceRecord(Module, inst);
+            }
+            var model = new KeywordGroupModel
+            {
+                Id = typeId.ToString()
             };
-            model.Keywords.Add(kw);
+            foreach (var k in group.First().Keywords)
+            {
+                var kw = new KeywordModel
+                {
+                    Id = k.Id
+                };
+                model.Keywords.Add(kw);
+            }
+            Item.Items.Add(model);
+            return new EditableMultiInstanceRecord(Module, model);
         }
-        Item.Items.Add(model);
-        return new EditableMultiInstanceRecord(Module, model);
     }    
     public EditableSingleInstanceRecord CreateEditableSingleInstanceRecord(string name)
     {
@@ -76,10 +80,13 @@ public sealed class KeywordCollection : OnBaseBaseService<OnBaseCore, KeywordCol
     }
     public EditableSingleInstanceRecord CreateEditableSingleInstanceRecord(long typeId)
     {
-        var record = Item.Items.FirstOrDefault(g => g.Id == typeId.ToString());
-        if (record == null)
-            throw new Exception($"Could not find the single instance keyword group with id {typeId}");
-        return new EditableSingleInstanceRecord(Module, record);
+        lock(_lock)
+        {
+            var record = Item.Items.FirstOrDefault(g => g.Id == typeId.ToString());
+            if (record == null)
+                throw new Exception($"Could not find the single instance keyword group with id {typeId}");
+            return new EditableSingleInstanceRecord(Module, record);
+        }
     }
     public EditableKeyword CreateEditableKeyword(string name)
     {
@@ -90,35 +97,44 @@ public sealed class KeywordCollection : OnBaseBaseService<OnBaseCore, KeywordCol
     }
     public EditableKeyword CreateEditableKeyword(long typeId)
     {
-        var existing = Item.Items.FirstOrDefault(g =>
+        lock(_lock)
         {
-            if (g.Id == null && g.Keywords.Any(k => k.Id == typeId.ToString()))
-                return true;
-            else
-                return false;
-        });
-        if (existing == null)
-            throw new Exception($"Could not find a stand alone keyword with Id {typeId}");
-        var key = existing.Keywords.FirstOrDefault(k => k.Id == typeId.ToString());
-        if(key == null)
-            throw new Exception($"Could not find a stand alone keyword with Id {typeId}");
-        return new EditableKeyword(Module, key, false);
+            var existing = Item.Items.FirstOrDefault(g =>
+            {
+                if (g.Id == null && g.Keywords.Any(k => k.Id == typeId.ToString()))
+                    return true;
+                else
+                    return false;
+            });
+            if (existing == null)
+                throw new Exception($"Could not find a stand alone keyword with Id {typeId}");
+            var key = existing.Keywords.FirstOrDefault(k => k.Id == typeId.ToString());
+            if (key == null)
+                throw new Exception($"Could not find a stand alone keyword with Id {typeId}");
+            return new EditableKeyword(Module, key, false);
+        }
     }
     public void RemoveMultiInstanceRecord(long groupId)
     {
-        var existing = Item.Items
+        lock(_lock)
+        {
+            var existing = Item.Items
             .FirstOrDefault(r => r.GroupId == groupId.ToString());
-        if (existing == null)
-            throw new Exception($"The keyword group with groupId, {groupId}, does not exist in the collection.");
-        Item.Items.Remove(existing);
+            if (existing == null)
+                throw new Exception($"The keyword group with groupId, {groupId}, does not exist in the collection.");
+            Item.Items.Remove(existing);
+        }
     }
     public void RemoveMultiInstanceRecord(string instanceId)
     {
-        var existing = Item.Items
+        lock(_lock)
+        {
+            var existing = Item.Items
             .FirstOrDefault(r => r.InstanceId == instanceId);
-        if (existing == null)
-            throw new Exception($"The keyword group with instance id, {instanceId}, does not exist in the collection.");
-        Item.Items.Remove(existing);
+            if (existing == null)
+                throw new Exception($"The keyword group with instance id, {instanceId}, does not exist in the collection.");
+            Item.Items.Remove(existing);
+        }
     }
     internal KeywordCollectionModel GetModel()
         => Item;
@@ -126,27 +142,30 @@ public sealed class KeywordCollection : OnBaseBaseService<OnBaseCore, KeywordCol
         => JsonUtility.Serialize(this);
     protected List<IKeywordGroup> SortMessyKeywords()
     {
-        List<IKeywordGroup> groups = [];
-        var standalones = new KeywordGroupModel();
-        Item.Items
-            .Where(g => g.Id == null)
-            .ToList()
-            .ForEach(g =>
-            {
-                g.Keywords.ToList()
-                .ForEach(k =>
+        lock(_lock)
+        {
+            List<IKeywordGroup> groups = [];
+            var standalones = new KeywordGroupModel();
+            Item.Items
+                .Where(g => g.Id == null)
+                .ToList()
+                .ForEach(g =>
                 {
-                    standalones.Keywords.Add(k);
+                    g.Keywords.ToList()
+                    .ForEach(k =>
+                    {
+                        standalones.Keywords.Add(k);
+                    });
                 });
-            });
-        groups.Add(IKeywordGroup.Create(Module, standalones));
-        Item.Items.Where(g => g.Id != null)
-            .ToList()
-            .ForEach(g =>
-            {
-                groups.Add(IKeywordGroup.Create(Module, g));
-            });
-        return groups;
+            groups.Add(IKeywordGroup.Create(Module, standalones));
+            Item.Items.Where(g => g.Id != null)
+                .ToList()
+                .ForEach(g =>
+                {
+                    groups.Add(IKeywordGroup.Create(Module, g));
+                });
+            return groups;
+        }
     }
 }
 

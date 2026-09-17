@@ -1,6 +1,5 @@
 ﻿using HyRest.Cache;
 using HyRest.OnBase.ApiServices;
-using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HyRest.OnBase;
@@ -53,14 +52,23 @@ public class OnBaseAppBuilder
         where T : class, IOnBaseApp
     {
         sc.AddSingleton(options);
-        sc.AddHybridCache(options =>
-        {
-            options.DefaultEntryOptions = new HybridCacheEntryOptions
-            {
-                Expiration = TimeSpan.FromHours(12),
-                LocalCacheExpiration = TimeSpan.FromMinutes(60),
-            };
-        });
+        //sc.AddSingleton<MemoryCache>(sp =>
+        //{
+        //    var options = new MemoryCacheOptions()
+        //    {
+        //        ExpirationScanFrequency = TimeSpan.FromSeconds(60),
+        //        SizeLimit = 2048
+        //    };
+        //    return new MemoryCache(options);
+        //});
+        //sc.AddHybridCache(options =>
+        //{
+        //    options.DefaultEntryOptions = new HybridCacheEntryOptions
+        //    {
+        //        Expiration = TimeSpan.FromMinutes(30),
+        //        LocalCacheExpiration = TimeSpan.FromMinutes(15),
+        //    };
+        //});
         
         sc.AddSingleton<OnBaseAppCache>();
         sc.AddSingleton<OnBaseSessionService>();

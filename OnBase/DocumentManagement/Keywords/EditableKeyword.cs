@@ -51,8 +51,6 @@ public sealed class EditableKeyword : Keyword, IEditableKeyword
     {
         return new Keyword(Module, Item);
     }
-    public new EditableKeywordValueCollection Values
-        => Values.AsEditable();
     IEditableKeyword IEditableKeyword.AddRange(IEnumerable<object> values)
         => AddRange(values);
     IEditableKeyword IEditableKeyword.Add(object value)

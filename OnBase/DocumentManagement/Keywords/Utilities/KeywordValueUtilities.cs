@@ -4,13 +4,13 @@ using HyRest.OnBase.Core;
 
 namespace HyRest.Utilities;
 
-public class KeywordValuesToStringConverter : JsonConverter<IReadOnlyCollection<KeywordValue>>
+public class KeywordValuesToStringConverter : JsonConverter<KeywordValueCollection>
 {
-    public override IReadOnlyCollection<KeywordValue> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override KeywordValueCollection Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();
     }
-    public override void Write(Utf8JsonWriter writer, IReadOnlyCollection<KeywordValue> values, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, KeywordValueCollection values, JsonSerializerOptions options)
     {
         writer.WriteStartArray();
         foreach (var value in values)

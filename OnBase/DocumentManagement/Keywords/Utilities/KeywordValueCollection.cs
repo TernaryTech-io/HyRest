@@ -2,14 +2,23 @@
 
 namespace HyRest.OnBase.Core;
 
-
-public class EditableKeywordValueCollection : KeywordValueCollection
+public class KeywordValueCollection : ValueCollection<KeywordValue, KeywordValueModel>
 {
-    internal EditableKeywordValueCollection(OnBaseCore core, IEnumerable<KeywordValueModel> values, IDataTypeConversionProvider handler) 
-        : base(core,values,handler)
+    private readonly OnBaseCore _core;
+    protected readonly IDataTypeConversionProvider _handler;
+    internal KeywordValueCollection(OnBaseCore core, ICollection<KeywordValueModel> values, IDataTypeConversionProvider handler) : base(values)
     {
-
+        _core = core;
+        _handler = handler;
     }
+    protected override KeywordValue? FromModel(KeywordValueModel? model)
+    {
+        if (model != null)
+            return new KeywordValue(_core, model, _handler);
+        else return null;
+    }
+    protected override KeywordValueModel ToModel(KeywordValue item)
+        => item.GetModel();
     internal void AddRange(IEnumerable<object> values, bool keywordGroupMember)
     {
         values.ToList().ForEach(v => Add(v, keywordGroupMember));
@@ -25,10 +34,10 @@ public class EditableKeywordValueCollection : KeywordValueCollection
     }
     internal void Add(object value, bool keywordGroupMember)
     {
-        if(!TryAdd(value, keywordGroupMember, out Exception? ex))
+        if (!TryAdd(value, keywordGroupMember, out Exception? ex))
         {
             throw ex?.InnerException ?? ex ?? new Exception("The was an unhandled exception while trying to validate the keyword value");
-        } 
+        }
     }
     internal bool TryAdd(object value, bool keywordGroupMember, out Exception? ex)
     {
@@ -37,18 +46,18 @@ public class EditableKeywordValueCollection : KeywordValueCollection
         {
             string? strValue = _handler.ToString(_handler.Parse(value));
             if (strValue == null)
-            {                
+            {
                 ex = new Exception($"Failed to add value '{value.ToString()}' to keyword", _handler.Exception);
                 return false;
             }
-            lock(_lock)
+            lock (_lock)
             {
-                if (_modelItems.Any(v => v.Value == strValue))
+                if (_items.Any(v => v.Value == strValue))
                     return true;
 
                 if (keywordGroupMember)
-                    _modelItems.Clear();
-                _modelItems.Add(new KeywordValueModel { Value = strValue });
+                    _items.Clear();
+                _items.Add(new KeywordValueModel { Value = strValue });
             }
             return true;
         }
@@ -61,57 +70,32 @@ public class EditableKeywordValueCollection : KeywordValueCollection
     internal void Update(object oldValue, object newValue)
     {
         var value = _handler.ToString(_handler.Parse(oldValue));
-        lock(_lock)
+        lock (_lock)
         {
-            var existing = _modelItems.FirstOrDefault(v => v.Value != null && v.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
+            var existing = _items.FirstOrDefault(v => v.Value != null && v.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
             if (existing != null)
                 existing.Value = value;
             else
-                _modelItems.Add(new KeywordValueModel { Value = value });
-        }        
+                _items.Add(new KeywordValueModel { Value = value });
+        }
     }
     internal void Remove(object oldValue)
     {
         var value = _handler.ToString(_handler.Parse(oldValue));
-        var existing = _modelItems.FirstOrDefault(v => v.Value != null && v.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
+        var existing = _items.FirstOrDefault(v => v.Value != null && v.Value.Equals(value, StringComparison.InvariantCultureIgnoreCase));
         if (existing != null)
         {
-            lock(_lock)
+            lock (_lock)
             {
-                _modelItems.Remove(existing);
+                _items.Remove(existing);
             }
         }
     }
     internal void ClearValues()
     {
-        lock(_lock)
-        {
-            _modelItems.Clear();
-        }
-    }
-}
-
-public class KeywordValueCollection : ValueCollection<KeywordValue, KeywordValueModel>
-{
-    private readonly OnBaseCore _core;
-    protected readonly IDataTypeConversionProvider _handler;
-    internal KeywordValueCollection(OnBaseCore core, IEnumerable<KeywordValueModel> values, IDataTypeConversionProvider handler) : base(values)
-    {
-        _core = core;
-        _handler = handler;
-    }
-
-    protected override List<KeywordValue> GetItems()
-    {
         lock (_lock)
         {
-            return _modelItems.Select(v => new KeywordValue(_core, v, _handler)).ToList();
+            _items.Clear();
         }
     }
-    protected override KeywordValue FromModel(KeywordValueModel model)
-        => new KeywordValue(_core, model, _handler);
-    protected override KeywordValueModel ToModel(KeywordValue item)
-        => item.GetModel();
-    internal EditableKeywordValueCollection AsEditable()
-        => new EditableKeywordValueCollection(_core, _modelItems, _handler);
 }

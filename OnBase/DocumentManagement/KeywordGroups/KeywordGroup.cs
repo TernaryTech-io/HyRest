@@ -6,6 +6,7 @@ namespace HyRest.OnBase.Core;
 
 public abstract class EditableKeywordGroup : KeywordGroup, IModifiableKeywordRecord
 {
+    private object _lock = new object();
     private bool _keywordGroup => GroupType != KeywordTypeGroupType.StandAlone;
     internal EditableKeywordGroup(OnBaseCore core, KeywordGroupModel group) : base(core, group)
     {
@@ -18,13 +19,16 @@ public abstract class EditableKeywordGroup : KeywordGroup, IModifiableKeywordRec
     /// <exception cref="Exception"></exception>
     public void Add(EditableKeyword item)
     {
-        var existing = ValiditityCheck(item);
-        if (existing != null)
+        lock(_lock)
         {
-            item.Values.ToList().ForEach(v => existing.Values.Add(v.GetModel()));
+            var existing = ValiditityCheck(item);
+            if (existing != null)
+            {
+                item.Values.ToList().ForEach(v => existing.Values.Add(v.GetModel()));
+            }
+            else
+                throw new Exception($"The keyword ({item.Id}) is not present in the keyword configuration");
         }
-        else
-            throw new Exception($"The keyword ({item.Id}) is not present in the keyword configuration");
     }
     public void AddRange(IEnumerable<EditableKeyword> items) => items.ToList().ForEach(k => Add(k));
     /// <summary>
@@ -33,21 +37,33 @@ public abstract class EditableKeywordGroup : KeywordGroup, IModifiableKeywordRec
     /// <param name="item"></param>
     public void Update(EditableKeyword item)
     {
-        var existing = ValiditityCheck(item);
-        if (existing != null)
+        lock(_lock)
         {
-            existing.Values.Clear();
-            item.Values.ToList().ForEach(v => existing.Values.Add(v.GetModel()));
+            var existing = ValiditityCheck(item);
+            if (existing != null)
+            {
+                existing.Values.Clear();
+                item.Values.ToList().ForEach(v => existing.Values.Add(v.GetModel()));
+            }
+            else
+                throw new Exception($"The keyword ({item.Id}) is not present in the keyword configuration");
         }
-        else
-            throw new Exception($"The keyword ({item.Id}) is not present in the keyword configuration");
     }
-    public void UpdateRange(IEnumerable<EditableKeyword> items) => items.ToList().ForEach(k => Update(k));
+    public void UpdateRange(IEnumerable<EditableKeyword> items)
+    {
+        lock(_lock)
+        {
+            items.ToList().ForEach(k => Update(k));
+        }
+    }
     public void Clear()
     {
-        foreach (var kw in Item.Keywords)
+        lock(_lock)
         {
-            kw.Values.Clear();
+            foreach (var kw in Item.Keywords)
+            {
+                kw.Values.Clear();
+            }
         }
     }
     public EditableKeyword CreateEditableKeyword(string identifier)
@@ -67,6 +83,7 @@ public abstract class EditableKeywordGroup : KeywordGroup, IModifiableKeywordRec
 }
 public abstract class KeywordGroup : OnBaseItemService<OnBaseCore, KeywordGroupModel>, IKeywordGroup
 {
+    private object _lock = new object();
     private KeywordTypeGroup? _keyTypeGroup { get; set; }
     internal KeywordGroup(OnBaseCore core, KeywordGroupModel group) : base(core, group)
     {        
@@ -102,7 +119,15 @@ public abstract class KeywordGroup : OnBaseItemService<OnBaseCore, KeywordGroupM
             return _keyTypeGroup;
         }
     }
-    public IReadOnlyCollection<Keyword> Keywords => Item.Keywords.Select(k => new Keyword(Module, k)).ToList().AsReadOnly();
+    public IReadOnlyCollection<Keyword> Keywords => GetKeywords();
+    private IReadOnlyCollection<Keyword> GetKeywords()
+    {
+        lock(_lock)
+        {
+            return Item.Keywords.Select(k => new Keyword(Module, k)).ToList();
+        }
+    }
+
     private void GetKeywordTypeGroup()
     {
         if (Item.Id != null)
@@ -115,25 +140,52 @@ public abstract class KeywordGroup : OnBaseItemService<OnBaseCore, KeywordGroupM
 
     internal KeywordGroupModel GetModel()
         => Item;
-    public Keyword? this[string name] => Keywords.FirstOrDefault(k => k.Name == name || k.SystemName == name);
-    public Keyword? this[long id] => Keywords.FirstOrDefault(k => k.Id == id);
+    public Keyword? this[string name] => Find(name);
+    public Keyword? this[long id] => Find(id);
+
+    public Keyword? Find(string name)
+    {
+        lock(_lock)
+        {
+            return Keywords.FirstOrDefault(k => k.Name == name || k.SystemName == name);
+        }
+    }
+    public Keyword? Find(long id)
+    {
+        lock (_lock)
+        {
+            return Keywords.FirstOrDefault(k => k.Id == id);
+        }
+    }
+
     [JsonIgnore]
     public int Count => Keywords.Count;    
     public List<Keyword> ToList() => Keywords.ToList();
-    public Keyword[] ToArray() => Keywords.ToArray();
-    public IEnumerator GetEnumerator() => Keywords.GetEnumerator();    
-    public bool Contains(IKeyword item) => Keywords.Any(k => k.Id == item.Id);
+    public Keyword[] ToArray() => Keywords.ToArray();   
+    public bool Contains(IKeyword item)
+    {
+        lock(_lock)
+        {
+            return Keywords.Any(k => k.Id == item.Id);
+        }
+    }
     public void Remove(IKeyword item)
     {
-        var keyword = Item.Keywords.FirstOrDefault(k => k.Id == item.Id.ToString());
-        if(keyword?.Values != null)
-            keyword.Values.Clear();
+        lock(_lock)
+        {
+            var keyword = Item.Keywords.FirstOrDefault(k => k.Id == item.Id.ToString());
+            if (keyword?.Values != null)
+                keyword.Values.Clear();
+        }
     }
     protected KeywordModel ValiditityCheck(Keyword item)
     {
-        if (!Item.Keywords.Any(k => k.Id == item.Id.ToString()))
-            throw new Exception($"The keyword type {item.Name} ({item.Id}) does not belong to this keyword group.");
-        return Item.Keywords.First(k => k.Id == item.Id.ToString());
+        lock(_lock)
+        {
+            if (!Item.Keywords.Any(k => k.Id == item.Id.ToString()))
+                throw new Exception($"The keyword type {item.Name} ({item.Id}) does not belong to this keyword group.");
+            return Item.Keywords.First(k => k.Id == item.Id.ToString());
+        }
     }
     
 }
@@ -148,7 +200,6 @@ public interface IKeywordGroup : IOnBaseItemService
     int Count { get; }
     List<Keyword> ToList();
     public Keyword[] ToArray();
-    IEnumerator GetEnumerator();    
     bool Contains(IKeyword item);
     public void Remove(IKeyword item);
     static IKeywordGroup Create(OnBaseCore core, KeywordGroupModel group, bool readOnly = true)
